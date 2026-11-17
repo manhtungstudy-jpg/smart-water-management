@@ -23,7 +23,9 @@ import {
   Clock,
   ArrowUpRight,
   ArrowDownRight,
-  Calendar
+  Calendar,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function App() {
@@ -41,8 +43,46 @@ export default function App() {
     { id: 4, type: 'Độ đục vượt chuẩn nhẹ (NTU)', location: 'Cửa xả Bể chứa ngầm Splendora', time: '10:04', status: 'Water Quality', severity: 'info', handled: false }
   ]);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handleAction = (id) => {
-    setAlarms(prev => prev.map(a => a.id === id ? { ...a, handled: !a.handled } : a));
+    setAlarms(prev => prev.map(a => {
+      if (a.id === id) {
+        const nextState = !a.handled;
+        showToast(nextState ? `Đã điều động kỹ thuật viên xử lý: ${a.type}` : `Đã hoàn tác trạng thái sự cố: ${a.type}`);
+        return { ...a, handled: nextState };
+      }
+      return a;
+    }));
+  };
+
+  const handleExportCSV = (filename = 'water_management_report.csv') => {
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+      + "Diem Do,Phan Khu,Luu Luong (m3/h),Ap Luc (bar),Trang Thai\n"
+      + "FM-01 (Dau vao Tong),Nha May Nuoc,145.8,3.8,Toi uu\n"
+      + "PRV-02 (Giam ap),DMA 1,48.2,3.1,On dinh\n"
+      + "PRV-03 (Giam ap),DMA 2,62.4,3.2,On dinh\n"
+      + "FM-04 (Dong ho DMA),DMA 3,35.2,3.4,Canh bao Ap cao\n"
+      + "SN-05 (Cam bien diem cut),DMA 2,0.0,2.1,Sut ap cuc bo\n"
+      + "FM-06 (Ho Dieu Hoa),Splendora,18.5,2.9,Dang khoa\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`Đã xuất và tải về: ${filename}`);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const dmaDetails = {
@@ -114,8 +154,16 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      {/* Mobile Drawer Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="app-sidebar">
+      <aside className={`app-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-badge">
             <Droplets size={22} />
@@ -130,35 +178,35 @@ export default function App() {
           <div className="nav-label">Phân Hệ Nghiệp Vụ</div>
           <button
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => { setActiveTab('overview'); setMobileMenuOpen(false); }}
           >
             <Activity size={18} />
             <span>1. Tổng quan Giám sát</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'gis' ? 'active' : ''}`}
-            onClick={() => setActiveTab('gis')}
+            onClick={() => { setActiveTab('gis'); setMobileMenuOpen(false); }}
           >
             <Layers size={18} />
             <span>2. Bản đồ Mạng lưới GIS</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'telemetry' ? 'active' : ''}`}
-            onClick={() => setActiveTab('telemetry')}
+            onClick={() => { setActiveTab('telemetry'); setMobileMenuOpen(false); }}
           >
             <Gauge size={18} />
             <span>3. Áp lực & Lưu lượng</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'leaks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('leaks')}
+            onClick={() => { setActiveTab('leaks'); setMobileMenuOpen(false); }}
           >
             <AlertTriangle size={18} />
             <span>4. Phát hiện Rò rỉ (NRW)</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'quality' ? 'active' : ''}`}
-            onClick={() => setActiveTab('quality')}
+            onClick={() => { setActiveTab('quality'); setMobileMenuOpen(false); }}
           >
             <Droplets size={18} />
             <span>5. Chất lượng Nước</span>
@@ -167,7 +215,7 @@ export default function App() {
           <div className="nav-label" style={{ marginTop: '16px' }}>Báo Cáo & Quản Trị</div>
           <button
             className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reports')}
+            onClick={() => { setActiveTab('reports'); setMobileMenuOpen(false); }}
           >
             <Download size={18} />
             <span>6. Kiểm toán Thất thoát</span>
@@ -179,7 +227,7 @@ export default function App() {
             <span className="status-dot"></span>
             <span>IoE Mesh Online (48 Node)</span>
           </div>
-          <RefreshCw size={14} color="#94a3b8" style={{ cursor: 'pointer' }} />
+          <RefreshCw size={14} color="#94a3b8" style={{ cursor: 'pointer' }} onClick={() => showToast("Đã đồng bộ lại 48 node cảm biến")} />
         </div>
       </aside>
 
@@ -187,22 +235,37 @@ export default function App() {
       <div className="main-wrapper">
         {/* Top Navbar */}
         <header className="top-header">
-          <div className="header-search">
-            <Search size={16} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm phân vùng DMA, trạm bơm, đồng hồ hoặc cảm biến..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="header-left-group">
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div className="header-search">
+              <Search size={16} />
+              <input
+                type="text"
+                placeholder="Tìm kiếm phân vùng DMA, trạm bơm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="header-actions">
-            <button className="action-btn">
+            <button className="action-btn" onClick={() => handleExportCSV('Bao_Cao_Van_Hanh_Ngay.csv')} title="Xuất Báo Cáo Ngày dạng CSV">
               <Download size={15} />
               <span>Xuất Báo Cáo Ngày</span>
             </button>
-            <button className="action-btn" style={{ position: 'relative' }}>
+            <button
+              className="action-btn"
+              style={{ position: 'relative' }}
+              onClick={() => showToast("Cảnh báo: 1 sự cố áp cao cần xử lý tại DMA 3")}
+              aria-label="Thông báo sự cố"
+              title="Xem thông báo sự cố"
+            >
               <Bell size={16} />
               <span style={{
                 position: 'absolute',
@@ -214,7 +277,7 @@ export default function App() {
                 borderRadius: '50%'
               }}></span>
             </button>
-            <div className="user-profile">
+            <div className="user-profile" title="Tài khoản kỹ sư trực ban">
               <div className="user-avatar">AD</div>
               <div className="user-info">
                 <span className="user-name">Kỹ Sư Trực Ban</span>
@@ -733,7 +796,12 @@ export default function App() {
                   </div>
                   <span style={{ fontSize: '12px', color: '#64748b' }}>Chi tiết 6 điểm nút quan trắc thủy lực tự động (SCADA / IoE)</span>
                 </div>
-                <button className="btn-sm btn-primary">Xuất Dữ Liệu Excel</button>
+                <button
+                  className="btn-sm btn-primary"
+                  onClick={() => handleExportCSV('Du_Lieu_Telemetry_6_Diem_Do.csv')}
+                >
+                  Xuất Dữ Liệu Excel
+                </button>
               </div>
 
               <div className="data-table-wrapper">
@@ -942,8 +1010,12 @@ export default function App() {
                   <span style={{ fontSize: '12px', color: '#64748b' }}>Chuẩn mực Hiệp hội Nước Quốc tế IWA</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="btn-sm btn-secondary">In Báo Cáo PDF</button>
-                  <button className="btn-sm btn-primary">Tải Dữ Liệu CSV</button>
+                  <button className="btn-sm btn-secondary" onClick={handlePrint} title="In hoặc lưu PDF">
+                    In Báo Cáo PDF
+                  </button>
+                  <button className="btn-sm btn-primary" onClick={() => handleExportCSV('Bao_Cao_Can_Bang_Nuoc_IWA.csv')} title="Tải file CSV">
+                    Tải Dữ Liệu CSV
+                  </button>
                 </div>
               </div>
 
@@ -1001,6 +1073,14 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="toast-notification">
+          <CheckCircle2 size={18} color="#10b981" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
