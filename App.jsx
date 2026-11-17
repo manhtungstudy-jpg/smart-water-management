@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Droplets,
   Activity,
@@ -25,8 +25,17 @@ import {
   ArrowDownRight,
   Calendar,
   Menu,
-  X
+  X,
+  Play,
+  Pause,
+  RotateCcw,
+  Compass,
+  Eye,
+  Box,
+  Maximize2,
+  Info
 } from 'lucide-react';
+import Network3DViewer from './Network3DViewer';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -45,6 +54,47 @@ export default function App() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // 3D Digital Twin (Qatium Reference) States
+  const [gisViewMode, setGisViewMode] = useState('3d'); // '3d' | '2d'
+  const [gisTheme, setGisTheme] = useState('dark'); // 'dark' | 'light'
+  const [gisHeatmap, setGisHeatmap] = useState('pressure'); // 'pressure' | 'flow'
+  const [gisAssetsLayer, setGisAssetsLayer] = useState({
+    pipes: true,
+    valves: true,
+    tanks: true,
+    sensors: true,
+    contour: true
+  });
+  const [simTime, setSimTime] = useState(14); // 0 - 23 (14 = 14:00)
+  const [simPlaying, setSimPlaying] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [isolatedPipe, setIsolatedPipe] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (simPlaying) {
+      timer = setInterval(() => {
+        setSimTime(prev => (prev + 1) % 24);
+      }, 1400);
+    }
+    return () => clearInterval(timer);
+  }, [simPlaying]);
+
+  // Dynamic SCADA simulation by hour
+  const getSimTelemetry = (hour) => {
+    if (hour >= 2 && hour <= 4) {
+      return { label: '03:00 - Đêm (MNF Rò rỉ)', flow: 58.4, pressure: 3.72, status: 'Cảnh báo rò rỉ đêm', nrw: '16.2%' };
+    } else if (hour >= 6 && hour <= 8) {
+      return { label: '07:30 - Cao điểm sáng', flow: 168.2, pressure: 3.05, status: 'Phụ tải tăng cao', nrw: '11.8%' };
+    } else if (hour >= 18 && hour <= 20) {
+      return { label: '19:00 - Cao điểm tối', flow: 174.5, pressure: 2.92, status: 'Phụ tải sinh hoạt', nrw: '12.1%' };
+    } else {
+      return { label: `${hour < 10 ? '0' + hour : hour}:00 - Giờ bình thường`, flow: 145.8, pressure: 3.24, status: 'Vận hành ổn định', nrw: '12.5%' };
+    }
+  };
+
+  const currentSim = getSimTelemetry(simTime);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -169,65 +219,65 @@ export default function App() {
             <Droplets size={22} />
           </div>
           <div>
-            <div className="logo-title">Smart Water Management</div>
-            <div className="logo-sub">IoE Infrastructure</div>
+            <div className="logo-title">Smart Water</div>
+            <div className="logo-sub">IoT SCADA</div>
           </div>
         </div>
 
         <nav className="sidebar-nav">
-          <div className="nav-label">Phân Hệ Nghiệp Vụ</div>
+          <div className="nav-label">Nghiệp Vụ</div>
           <button
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => { setActiveTab('overview'); setMobileMenuOpen(false); }}
           >
             <Activity size={18} />
-            <span>1. Tổng quan Giám sát</span>
+            <span>1. Tổng quan</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'gis' ? 'active' : ''}`}
             onClick={() => { setActiveTab('gis'); setMobileMenuOpen(false); }}
           >
             <Layers size={18} />
-            <span>2. Bản đồ Mạng lưới GIS</span>
+            <span>2. Mạng GIS</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'telemetry' ? 'active' : ''}`}
             onClick={() => { setActiveTab('telemetry'); setMobileMenuOpen(false); }}
           >
             <Gauge size={18} />
-            <span>3. Áp lực & Lưu lượng</span>
+            <span>3. Áp & Lưu lượng</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'leaks' ? 'active' : ''}`}
             onClick={() => { setActiveTab('leaks'); setMobileMenuOpen(false); }}
           >
             <AlertTriangle size={18} />
-            <span>4. Phát hiện Rò rỉ (NRW)</span>
+            <span>4. Thất thoát (NRW)</span>
           </button>
           <button
             className={`nav-item ${activeTab === 'quality' ? 'active' : ''}`}
             onClick={() => { setActiveTab('quality'); setMobileMenuOpen(false); }}
           >
             <Droplets size={18} />
-            <span>5. Chất lượng Nước</span>
+            <span>5. Chất lượng nước</span>
           </button>
 
-          <div className="nav-label" style={{ marginTop: '16px' }}>Báo Cáo & Quản Trị</div>
+          <div className="nav-label" style={{ marginTop: '16px' }}>Báo Cáo</div>
           <button
             className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
             onClick={() => { setActiveTab('reports'); setMobileMenuOpen(false); }}
           >
             <Download size={18} />
-            <span>6. Kiểm toán Thất thoát</span>
+            <span>6. Kiểm toán nước</span>
           </button>
         </nav>
 
         <div className="sidebar-footer">
           <div className="system-status">
             <span className="status-dot"></span>
-            <span>IoE Mesh Online (48 Node)</span>
+            <span>Trực tuyến: 48 node</span>
           </div>
-          <RefreshCw size={14} color="#94a3b8" style={{ cursor: 'pointer' }} onClick={() => showToast("Đã đồng bộ lại 48 node cảm biến")} />
+          <RefreshCw size={14} color="#94a3b8" style={{ cursor: 'pointer' }} onClick={() => showToast("Đã đồng bộ lại 48 node")} />
         </div>
       </aside>
 
@@ -247,7 +297,7 @@ export default function App() {
               <Search size={16} />
               <input
                 type="text"
-                placeholder="Tìm kiếm phân vùng DMA, trạm bơm..."
+                placeholder="Tìm trạm, DMA, cảm biến..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -255,16 +305,16 @@ export default function App() {
           </div>
 
           <div className="header-actions">
-            <button className="action-btn" onClick={() => handleExportCSV('Bao_Cao_Van_Hanh_Ngay.csv')} title="Xuất Báo Cáo Ngày dạng CSV">
+            <button className="action-btn" onClick={() => handleExportCSV('Bao_Cao_Van_Hanh_Ngay.csv')} title="Xuất báo cáo CSV">
               <Download size={15} />
-              <span>Xuất Báo Cáo Ngày</span>
+              <span>Xuất báo cáo</span>
             </button>
             <button
               className="action-btn"
               style={{ position: 'relative' }}
-              onClick={() => showToast("Cảnh báo: 1 sự cố áp cao cần xử lý tại DMA 3")}
+              onClick={() => showToast("Cảnh báo: 1 sự cố áp cao tại DMA 3")}
               aria-label="Thông báo sự cố"
-              title="Xem thông báo sự cố"
+              title="Xem thông báo"
             >
               <Bell size={16} />
               <span style={{
@@ -277,11 +327,11 @@ export default function App() {
                 borderRadius: '50%'
               }}></span>
             </button>
-            <div className="user-profile" title="Tài khoản kỹ sư trực ban">
+            <div className="user-profile" title="Tài khoản kỹ sư">
               <div className="user-avatar">AD</div>
               <div className="user-info">
-                <span className="user-name">Kỹ Sư Trực Ban</span>
-                <span className="user-role">Vận Hành Cấp Nước</span>
+                <span className="user-name">Kỹ sư trực</span>
+                <span className="user-role">Vận hành</span>
               </div>
             </div>
           </div>
@@ -294,13 +344,13 @@ export default function App() {
             <>
               <div className="page-title-row">
                 <div>
-                  <h1 className="page-title">Hệ Thống Quản Lý Cấp Nước Thông Minh</h1>
-                  <p className="page-subtitle">Giám sát áp lực, lưu lượng 3 phân vùng DMA và tỷ lệ thất thoát nước thời gian thực</p>
+                  <h1 className="page-title">Giám sát Cấp nước</h1>
+                  <p className="page-subtitle">Áp lực, lưu lượng 3 DMA và thất thoát thời gian thực</p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <span className="metric-badge badge-success">
                     <CheckCircle2 size={13} />
-                    <span>Trạm bơm chính hoạt động 100%</span>
+                    <span>Trạm bơm chính: 100%</span>
                   </span>
                 </div>
               </div>
@@ -309,7 +359,7 @@ export default function App() {
               <div className="metrics-grid">
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Tổng Lưu Lượng Cấp (Inflow)</span>
+                    <span>Lưu lượng cấp</span>
                     <div className="metric-icon-wrap" style={{ background: '#e0f2fe', color: '#0284c7' }}>
                       <Droplets size={18} />
                     </div>
@@ -319,13 +369,13 @@ export default function App() {
                     <span className="metric-unit">m³/h</span>
                   </div>
                   <div>
-                    <span className="metric-badge badge-success">↑ 3.2% so với định mức giờ</span>
+                    <span className="metric-badge badge-success">↑ 3.2% định mức giờ</span>
                   </div>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Áp Lực Trung Bình Mạng Lưới</span>
+                    <span>Áp lực trung bình</span>
                     <div className="metric-icon-wrap" style={{ background: '#ecfdf5', color: '#10b981' }}>
                       <Gauge size={18} />
                     </div>
@@ -335,13 +385,13 @@ export default function App() {
                     <span className="metric-unit">bar</span>
                   </div>
                   <div>
-                    <span className="metric-badge badge-info">Dải tối ưu (2.8 - 3.5 bar)</span>
+                    <span className="metric-badge badge-info">Tối ưu: 2.8 - 3.5 bar</span>
                   </div>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Tỷ Lệ Thất Thoát Nước (NRW)</span>
+                    <span>Thất thoát (NRW)</span>
                     <div className="metric-icon-wrap" style={{ background: '#fef3c7', color: '#d97706' }}>
                       <TrendingDown size={18} />
                     </div>
@@ -350,13 +400,13 @@ export default function App() {
                     <span className="metric-value">12.5%</span>
                   </div>
                   <div>
-                    <span className="metric-badge badge-success">↓ 1.1% so với tuần trước</span>
+                    <span className="metric-badge badge-success">↓ 1.1% theo tuần</span>
                   </div>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Cảnh Báo Kích Hoạt</span>
+                    <span>Cảnh báo</span>
                     <div className="metric-icon-wrap" style={{ background: '#fee2e2', color: '#ef4444' }}>
                       <AlertTriangle size={18} />
                     </div>
@@ -365,10 +415,10 @@ export default function App() {
                     <span className="metric-value" style={{ color: '#ef4444' }}>
                       {alarms.filter(a => !a.handled).length}
                     </span>
-                    <span className="metric-unit">sự cố cần xử lý</span>
+                    <span className="metric-unit">sự cố</span>
                   </div>
                   <div>
-                    <span className="metric-badge badge-danger">1 rò rỉ nghi vấn đêm</span>
+                    <span className="metric-badge badge-danger">1 nghi vấn đêm</span>
                   </div>
                 </div>
               </div>
@@ -380,99 +430,69 @@ export default function App() {
                   <div className="panel-card-header">
                     <div className="panel-card-title">
                       <MapPin size={17} color="#0284c7" />
-                      <span>Sơ Đồ Mạng Lưới Cấp Nước & Phân Vùng DMA</span>
+                      <span>Sơ đồ phân vùng DMA</span>
                     </div>
                     <div className="panel-card-actions">
+                      <div className="qatium-hud-pill-group" style={{ padding: '2px' }}>
+                        <button
+                          className={`qatium-hud-btn ${gisTheme === 'dark' ? 'active' : ''}`}
+                          onClick={() => setGisTheme('dark')}
+                          style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                          title="Chế độ Digital Twin (Tối)"
+                        >
+                          Tối
+                        </button>
+                        <button
+                          className={`qatium-hud-btn ${gisTheme === 'light' ? 'active' : ''}`}
+                          onClick={() => setGisTheme('light')}
+                          style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                          title="Chế độ SCADA (Sáng)"
+                        >
+                          Sáng
+                        </button>
+                      </div>
                       <button className="btn-sm btn-secondary" onClick={() => setActiveTab('gis')}>
-                        Mở Rộng GIS →
+                        Mở GIS →
                       </button>
                     </div>
                   </div>
 
-                  <div className="map-canvas-container">
-                    <svg className="map-svg" viewBox="0 0 700 440">
-                      <rect width="700" height="440" fill="#f8fafc" />
-                      <path d="M 0 350 Q 200 320 400 380 T 700 340 L 700 440 L 0 440 Z" fill="#e2e8f0" opacity="0.4" />
-                      <path d="M 520 80 Q 640 120 620 280 T 540 400 L 700 400 L 700 80 Z" fill="#bae6fd" opacity="0.3" />
-                      <text x="590" y="240" fill="#0284c7" fontSize="12" fontWeight="600" opacity="0.6">Hồ Điều Hòa</text>
+                  <div className={`map-canvas-container ${gisTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} style={{ minHeight: '440px', height: '440px', position: 'relative' }}>
+                    <Network3DViewer
+                      theme={gisTheme}
+                      heatmap={gisHeatmap}
+                      assetsLayer={gisAssetsLayer}
+                      isolatedPipe={isolatedPipe}
+                      simTime={simTime}
+                      currentSim={currentSim}
+                      compact={true}
+                      onSelectAsset={(asset) => {
+                        if (asset.dma && (asset.dma.includes('DMA 1') || asset.dma === 'DMA 1')) {
+                          setSelectedDma('DMA 1');
+                        } else if (asset.dma && (asset.dma.includes('DMA 2') || asset.dma === 'DMA 2')) {
+                          setSelectedDma('DMA 2');
+                        } else if (asset.dma && (asset.dma.includes('DMA 3') || asset.dma === 'DMA 3')) {
+                          setSelectedDma('DMA 3');
+                        }
+                      }}
+                    />
 
-                      {/* DMA 1 */}
-                      <polygon
-                        points="90,180 280,180 250,370 70,330"
-                        fill={selectedDma === 'DMA 1' ? '#93c5fd' : '#dbeafe'}
-                        stroke="#3b82f6"
-                        strokeWidth={selectedDma === 'DMA 1' ? 3 : 1.5}
-                        opacity="0.75"
-                        onClick={() => setSelectedDma('DMA 1')}
-                        style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                      />
-                      <text x="140" y="270" fill="#1e40af" fontSize="13" fontWeight="700">DMA 1 (3.1 bar)</text>
-
-                      {/* DMA 2 */}
-                      <polygon
-                        points="290,170 490,160 470,360 260,370"
-                        fill={selectedDma === 'DMA 2' ? '#86efac' : '#dcfce7'}
-                        stroke="#22c55e"
-                        strokeWidth={selectedDma === 'DMA 2' ? 3 : 1.5}
-                        opacity="0.75"
-                        onClick={() => setSelectedDma('DMA 2')}
-                        style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                      />
-                      <text x="350" y="260" fill="#166534" fontSize="13" fontWeight="700">DMA 2 (3.2 bar)</text>
-
-                      {/* DMA 3 */}
-                      <polygon
-                        points="180,40 450,40 480,150 280,160"
-                        fill={selectedDma === 'DMA 3' ? '#cbd5e1' : '#f1f5f9'}
-                        stroke="#64748b"
-                        strokeWidth={selectedDma === 'DMA 3' ? 3 : 1.5}
-                        opacity="0.8"
-                        onClick={() => setSelectedDma('DMA 3')}
-                        style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                      />
-                      <text x="300" y="100" fill="#334155" fontSize="13" fontWeight="700">DMA 3 (3.4 bar)</text>
-
-                      {/* Pipes */}
-                      <path d="M 50 240 L 180 240 L 300 240 L 460 230" stroke="#0284c7" strokeWidth="5" strokeLinecap="round" fill="none" />
-                      <path d="M 180 240 L 180 80 L 320 80" stroke="#0284c7" strokeWidth="3.5" strokeDasharray="6,4" fill="none" />
-                      <path d="M 360 240 L 360 340" stroke="#0284c7" strokeWidth="3" fill="none" />
-
-                      {/* Pump Station Icons */}
-                      <circle cx="50" cy="240" r="14" fill="#0284c7" stroke="#ffffff" strokeWidth="3" />
-                      <text x="44" y="244" fill="#ffffff" fontSize="11" fontWeight="bold">P1</text>
-
-                      <circle cx="300" cy="240" r="10" fill="#10b981" stroke="#ffffff" strokeWidth="2.5" />
-                      <text x="294" y="243" fill="#ffffff" fontSize="9" fontWeight="bold">P2</text>
-
-                      {/* Sensor Nodes */}
-                      <circle cx="160" cy="240" r="6" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-                      <circle cx="240" cy="190" r="5" fill="#3b82f6" stroke="#ffffff" strokeWidth="1.5" />
-                      <circle cx="400" cy="230" r="5" fill="#3b82f6" stroke="#ffffff" strokeWidth="1.5" />
-                      <circle cx="340" cy="80" r="6" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
-
-                      {/* Pulsing Alert */}
-                      <circle cx="160" cy="240" r="14" fill="none" stroke="#ef4444" strokeWidth="2" opacity="0.6">
-                        <animate attributeName="r" values="8;18;8" dur="2s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" />
-                      </circle>
-                    </svg>
-
-                    <div className="map-overlay-badge">
+                    <div className="map-overlay-badge" style={{ zIndex: 25, pointerEvents: 'auto' }}>
                       <div className="map-overlay-title">{dmaDetails[selectedDma].name}</div>
                       <div className="map-overlay-sub">
-                        Lưu lượng: <b>{dmaDetails[selectedDma].flow}</b> | Áp lực: <b>{dmaDetails[selectedDma].pressure}</b> | Thất thoát: <b>{dmaDetails[selectedDma].nrw}</b>
+                        Lưu lượng: <b>{dmaDetails[selectedDma].flow}</b> · Áp: <b>{dmaDetails[selectedDma].pressure}</b> · NRW: <b>{dmaDetails[selectedDma].nrw}</b>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* LINE CHART: THỦY LỰC ĐƯỜNG TRUNG BÌNH & THỰC TẾ (MỤC 1 & 3 YÊU CẦU) */}
+                {/* LINE CHART */}
                 <div className="panel-card">
                   <div className="panel-card-header">
                     <div>
                       <div className="panel-card-title">
                         <Activity size={17} color="#0284c7" />
-                        <span>Biểu Đồ Thủy Lực Giám Sát Bất Thường</span>
+                        <span>Thủy lực 24h & Cảnh báo</span>
                       </div>
                       <span style={{ fontSize: '12px', color: '#64748b' }}>{currentChart.subtitle}</span>
                     </div>
@@ -505,15 +525,15 @@ export default function App() {
                     <div className="line-chart-legend">
                       <div className="legend-line-item">
                         <div className="line-sample-actual"></div>
-                        <span>Đường Thực Tế (Actual)</span>
+                        <span>Thực tế</span>
                       </div>
                       <div className="legend-line-item">
                         <div className="line-sample-baseline"></div>
-                        <span>Đường Trung Bình (Baseline)</span>
+                        <span>Baseline</span>
                       </div>
                       <div className="legend-line-item">
                         <div className="line-sample-alert"></div>
-                        <span>Điểm Cảnh Báo Lệch Chuẩn</span>
+                        <span>Lệch chuẩn</span>
                       </div>
                     </div>
 
@@ -622,8 +642,8 @@ export default function App() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
-                      <span>Lưu lượng tối thiểu ban đêm (MNF): <b>65 m³/h</b> (Nguy cơ rò rỉ khi {'>'} 70 m³/h)</span>
-                      <span>Hệ số an toàn áp lực: <b>1.15</b></span>
+                      <span>MNF đêm: <b>65 m³/h</b> (Nguy cơ: {'>'} 70 m³/h)</span>
+                      <span>Hệ số an toàn: <b>1.15</b></span>
                     </div>
                   </div>
                 </div>
@@ -634,10 +654,10 @@ export default function App() {
                 <div className="panel-card-header">
                   <div className="panel-card-title">
                     <ShieldAlert size={17} color="#ef4444" />
-                    <span>Nhật Ký Sự Cố & Cảnh Báo Thất Thoát Tức Thời</span>
+                    <span>Nhật ký sự cố SCADA</span>
                   </div>
                   <div className="panel-card-actions">
-                    <span className="metric-badge badge-warning">Cần xác nhận xử lý</span>
+                    <span className="metric-badge badge-warning">Chờ xử lý</span>
                   </div>
                 </div>
 
@@ -645,12 +665,12 @@ export default function App() {
                   <table className="custom-table">
                     <thead>
                       <tr>
-                        <th>Trạng Thái</th>
-                        <th>Loại Sự Cố</th>
-                        <th>Vị Trí Phân Vùng</th>
-                        <th>Thời Điểm</th>
-                        <th>Tình Trạng</th>
-                        <th>Hành Động Khắc Phục</th>
+                        <th>Mức độ</th>
+                        <th>Sự cố</th>
+                        <th>Vị trí</th>
+                        <th>Giờ</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -670,7 +690,7 @@ export default function App() {
                           <td>
                             {item.handled ? (
                               <span style={{ color: '#10b981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <CheckCircle2 size={14} /> Đã tiếp nhận
+                                <CheckCircle2 size={14} /> Đã nhận
                               </span>
                             ) : (
                               <span style={{ color: '#ef4444', fontWeight: '600' }}>Chưa xử lý</span>
@@ -681,7 +701,7 @@ export default function App() {
                               className={`btn-sm ${item.handled ? 'btn-secondary' : 'btn-primary'}`}
                               onClick={() => handleAction(item.id)}
                             >
-                              {item.handled ? 'Hoàn tác' : 'Điều động kỹ thuật (Dispatch)'}
+                              {item.handled ? 'Hoàn tác' : 'Điều động'}
                             </button>
                           </td>
                         </tr>
@@ -693,94 +713,255 @@ export default function App() {
             </>
           )}
 
-          {/* TAB 2: GIS NETWORK MAP (MỤC 2 YÊU CẦU) */}
+          {/* TAB 2: 3D DIGITAL TWIN NETWORK (QATIUM REFERENCE) */}
           {activeTab === 'gis' && (
-            <div className="panel-card">
+            <div className="panel-card" style={{ position: 'relative' }}>
               <div className="panel-card-header">
                 <div>
                   <div className="panel-card-title">
-                    <Layers size={18} color="#0284c7" />
-                    <span>Bản Đồ Mạng Lưới Cấp Nước GIS Toàn Diện</span>
+                    <Box size={18} color="#0284c7" />
+                    <span>Mạng 3D Digital Twin (GIS Thủy lực)</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>Quản lý tuyến ống, van điều áp và trạm đo lưu lượng</span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                    Không gian 3D địa hình, mô phỏng thủy lực thời gian thực và quản lý tài sản theo chuẩn Qatium
+                  </span>
                 </div>
 
-                <div className="chip-group">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
-                    className={`chip ${gisLayer.pipes ? 'active' : ''}`}
-                    onClick={() => setGisLayer(p => ({ ...p, pipes: !p.pipes }))}
+                    className={`btn-sm ${isolatedPipe ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => {
+                      setIsolatedPipe(!isolatedPipe);
+                      showToast(!isolatedPipe ? "Mô phỏng: Đã đóng van PRV-02! Khu vực DMA 2 đang chạy nguồn dự phòng." : "Đã mở lại van PRV-02, mạng lưới trở lại bình thường.");
+                    }}
+                    title="Mô phỏng đóng ngắt sự cố"
                   >
-                    Tuyến Ống (D100/D200)
+                    <Sliders size={13} />
+                    <span>{isolatedPipe ? 'Mở van PRV-02' : 'Mô phỏng đóng van PRV-02'}</span>
                   </button>
                   <button
-                    className={`chip ${gisLayer.valves ? 'active' : ''}`}
-                    onClick={() => setGisLayer(p => ({ ...p, valves: !p.valves }))}
+                    className="btn-sm btn-secondary"
+                    onClick={() => handleExportCSV('Mo_Hinh_Mang_3D_GIS.csv')}
                   >
-                    Van Giảm Áp (PRV)
-                  </button>
-                  <button
-                    className={`chip ${gisLayer.sensors ? 'active' : ''}`}
-                    onClick={() => setGisLayer(p => ({ ...p, sensors: !p.sensors }))}
-                  >
-                    Cảm Biến IoT
+                    <Download size={13} />
+                    <span>Xuất GIS</span>
                   </button>
                 </div>
               </div>
 
-              <div className="map-canvas-container" style={{ minHeight: '560px' }}>
-                <svg className="map-svg" viewBox="0 0 900 560">
-                  <rect width="900" height="560" fill="#f8fafc" />
-                  <path d="M 0 420 Q 300 380 600 480 T 900 430 L 900 560 L 0 560 Z" fill="#e2e8f0" opacity="0.5" />
-                  <path d="M 680 90 Q 820 150 780 360 T 700 520 L 900 520 L 900 90 Z" fill="#bae6fd" opacity="0.35" />
-                  <text x="760" y="320" fill="#0284c7" fontSize="14" fontWeight="bold" opacity="0.7">Hồ Điều Hòa Splendora</text>
+              {/* 3D Canvas Stage */}
+              <div className={`map-canvas-container ${gisTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} style={{ minHeight: '620px' }}>
+                
+                {/* Floating HUD Controls */}
+                <div className="qatium-hud-top" style={{ maxWidth: '620px' }}>
+                  {/* Theme Mode Toggle */}
+                  <div className="qatium-hud-pill-group">
+                    <button
+                      className={`qatium-hud-btn ${gisTheme === 'dark' ? 'active' : ''}`}
+                      onClick={() => setGisTheme('dark')}
+                    >
+                      <span>Digital Twin (Tối)</span>
+                    </button>
+                    <button
+                      className={`qatium-hud-btn ${gisTheme === 'light' ? 'active' : ''}`}
+                      onClick={() => setGisTheme('light')}
+                    >
+                      <span>SCADA (Sáng)</span>
+                    </button>
+                  </div>
 
-                  {/* DMA Polygons */}
-                  <polygon points="120,240 380,240 340,480 90,440" fill="#dbeafe" stroke="#3b82f6" strokeWidth="2" opacity="0.7" />
-                  <text x="180" y="360" fill="#1e40af" fontSize="15" fontWeight="bold">DMA 1 - Khu Biệt Thự Phía Nam</text>
+                  {/* Heatmap Mode Toggle */}
+                  <div className="qatium-hud-pill-group">
+                    <button
+                      className={`qatium-hud-btn ${gisHeatmap === 'pressure' ? 'active' : ''}`}
+                      onClick={() => setGisHeatmap('pressure')}
+                    >
+                      <Gauge size={13} />
+                      <span>Áp lực (bar)</span>
+                    </button>
+                    <button
+                      className={`qatium-hud-btn ${gisHeatmap === 'flow' ? 'active' : ''}`}
+                      onClick={() => setGisHeatmap('flow')}
+                    >
+                      <Droplets size={13} />
+                      <span>Lưu lượng (m³/h)</span>
+                    </button>
+                  </div>
 
-                  <polygon points="400,230 660,210 630,470 360,480" fill="#dcfce7" stroke="#22c55e" strokeWidth="2" opacity="0.7" />
-                  <text x="440" y="350" fill="#166534" fontSize="15" fontWeight="bold">DMA 2 - Trung Tâm & Công Viên</text>
-
-                  <polygon points="250,60 620,60 650,200 380,210" fill="#f1f5f9" stroke="#64748b" strokeWidth="2" opacity="0.8" />
-                  <text x="390" y="140" fill="#334155" fontSize="15" fontWeight="bold">DMA 3 - Khu Biệt Thự Ven Hồ</text>
-
-                  {/* Pipes Layer */}
-                  {gisLayer.pipes && (
-                    <>
-                      <path d="M 70 320 L 250 320 L 420 320 L 640 300" stroke="#0284c7" strokeWidth="6" strokeLinecap="round" fill="none" />
-                      <path d="M 250 320 L 250 110 L 440 110" stroke="#0284c7" strokeWidth="4" strokeDasharray="8,5" fill="none" />
-                      <path d="M 480 320 L 480 440" stroke="#0284c7" strokeWidth="4" fill="none" />
-                    </>
-                  )}
-
-                  {/* Valves Layer */}
-                  {gisLayer.valves && (
-                    <>
-                      <rect x="235" y="312" width="16" height="16" fill="#f59e0b" rx="3" stroke="#fff" strokeWidth="2" />
-                      <rect x="410" y="312" width="16" height="16" fill="#f59e0b" rx="3" stroke="#fff" strokeWidth="2" />
-                    </>
-                  )}
-
-                  {/* Sensors Layer */}
-                  {gisLayer.sensors && (
-                    <>
-                      <circle cx="210" cy="320" r="7" fill="#ef4444" stroke="#fff" strokeWidth="2" />
-                      <circle cx="560" cy="300" r="7" fill="#10b981" stroke="#fff" strokeWidth="2" />
-                      <circle cx="340" cy="110" r="7" fill="#10b981" stroke="#fff" strokeWidth="2" />
-                    </>
-                  )}
-
-                  {/* Main Pump */}
-                  <circle cx="70" cy="320" r="18" fill="#0284c7" stroke="#ffffff" strokeWidth="3" />
-                  <text x="63" y="325" fill="#ffffff" fontSize="13" fontWeight="bold">P1</text>
-                  <text x="35" y="355" fill="#0f172a" fontSize="12" fontWeight="700">Trạm Bơm Tổng</text>
-                </svg>
-
-                <div className="map-legend">
-                  <div className="legend-item"><span className="legend-color" style={{ background: '#0284c7', height: '4px' }}></span> Tuyến ống truyền tải D200</div>
-                  <div className="legend-item"><span className="legend-color" style={{ background: '#f59e0b' }}></span> Van giảm áp tự động (PRV)</div>
-                  <div className="legend-item"><span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }}></span> Cảm biến áp lực cảnh báo</div>
+                  {/* Layer Toggles */}
+                  <div className="qatium-hud-pill-group">
+                    <button
+                      className={`qatium-hud-btn ${gisAssetsLayer.pipes ? 'active' : ''}`}
+                      onClick={() => setGisAssetsLayer(p => ({ ...p, pipes: !p.pipes }))}
+                    >
+                      <span>Ống 3D</span>
+                    </button>
+                    <button
+                      className={`qatium-hud-btn ${gisAssetsLayer.valves ? 'active' : ''}`}
+                      onClick={() => setGisAssetsLayer(p => ({ ...p, valves: !p.valves }))}
+                    >
+                      <span>Van PRV</span>
+                    </button>
+                    <button
+                      className={`qatium-hud-btn ${gisAssetsLayer.tanks ? 'active' : ''}`}
+                      onClick={() => setGisAssetsLayer(p => ({ ...p, tanks: !p.tanks }))}
+                    >
+                      <span>Đài nước & Bơm</span>
+                    </button>
+                    <button
+                      className={`qatium-hud-btn ${gisAssetsLayer.sensors ? 'active' : ''}`}
+                      onClick={() => setGisAssetsLayer(p => ({ ...p, sensors: !p.sensors }))}
+                    >
+                      <span>Cảm biến</span>
+                    </button>
+                  </div>
                 </div>
+
+                {/* 3D WebGL Digital Twin (Three.js with OrbitControls) */}
+                <Network3DViewer
+                  theme={gisTheme}
+                  heatmap={gisHeatmap}
+                  assetsLayer={gisAssetsLayer}
+                  isolatedPipe={isolatedPipe}
+                  simTime={simTime}
+                  currentSim={currentSim}
+                  onSelectAsset={(asset) => setSelectedAsset(asset)}
+                />
+
+                {/* Qatium Asset Inspector Drawer (Right Flyout) */}
+                {selectedAsset && (
+                  <div className="qatium-inspector-drawer">
+                    <div className="inspector-header">
+                      <div className="inspector-title">
+                        <Box size={16} color="#0284c7" />
+                        <span>{selectedAsset.name}</span>
+                      </div>
+                      <button
+                        className="inspector-close-btn"
+                        onClick={() => setSelectedAsset(null)}
+                        aria-label="Đóng thanh thông tin"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <div className="inspector-body">
+                      <div>
+                        <span className="metric-badge badge-info" style={{ marginBottom: '6px' }}>
+                          Mã ID: {selectedAsset.id}
+                        </span>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>{selectedAsset.type}</div>
+                      </div>
+
+                      <div className="inspector-grid">
+                        <div className="inspector-metric-box">
+                          <span className="inspector-metric-label">Áp Lực SCADA</span>
+                          <span className="inspector-metric-val">{selectedAsset.pressure || selectedAsset.inletPressure || 'N/A'}</span>
+                        </div>
+                        <div className="inspector-metric-box">
+                          <span className="inspector-metric-label">Lưu Lượng Cấp</span>
+                          <span className="inspector-metric-val">{selectedAsset.flow || 'N/A'}</span>
+                        </div>
+                        <div className="inspector-metric-box">
+                          <span className="inspector-metric-label">Cao Độ Z</span>
+                          <span className="inspector-metric-val">{selectedAsset.elevation || '+0.0m'}</span>
+                        </div>
+                        <div className="inspector-metric-box">
+                          <span className="inspector-metric-label">Tổn Thất / Cột Áp</span>
+                          <span className="inspector-metric-val">{selectedAsset.headloss || selectedAsset.head || selectedAsset.level || 'Tối ưu'}</span>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+                        <div><b>Trạng thái:</b> <span style={{ color: selectedAsset.status.includes('Cảnh báo') || selectedAsset.status.includes('ĐÓNG') ? '#dc2626' : '#16a34a' }}>{selectedAsset.status}</span></div>
+                        {selectedAsset.material && <div><b>Vật liệu:</b> {selectedAsset.material}</div>}
+                        {selectedAsset.diameter && <div><b>Đường kính danh định:</b> {selectedAsset.diameter}</div>}
+                        {selectedAsset.households && <div><b>Quy mô phụ tải:</b> {selectedAsset.households}</div>}
+                        {selectedAsset.power && <div><b>Công suất truyền động:</b> {selectedAsset.power}</div>}
+                        <div><b>Khu vực phụ trách:</b> {selectedAsset.dma}</div>
+                      </div>
+
+                      <div className="inspector-actions">
+                        {selectedAsset.id === 'PRV-02' && (
+                          <button
+                            className="btn-sm btn-primary"
+                            onClick={() => {
+                              setIsolatedPipe(!isolatedPipe);
+                              showToast(!isolatedPipe ? "Đã đóng van PRV-02!" : "Đã mở lại van PRV-02!");
+                            }}
+                          >
+                            <Sliders size={13} />
+                            <span>{isolatedPipe ? 'Mở lại van PRV-02' : 'Mô phỏng đóng ngắt (Shutdown)'}</span>
+                          </button>
+                        )}
+                        <button
+                          className="btn-sm btn-secondary"
+                          onClick={() => showToast(`Đang trích xuất đồ thị áp lực 24h cho ${selectedAsset.id}...`)}
+                        >
+                          <Activity size={13} />
+                          <span>Đồ thị áp lực 24h</span>
+                        </button>
+                        <button
+                          className="btn-sm btn-secondary"
+                          onClick={() => showToast(`Đã tạo lệnh điều động kỹ sư kiểm tra ${selectedAsset.id}`)}
+                        >
+                          <CheckCircle2 size={13} />
+                          <span>Tạo phiếu bảo trì</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Qatium 24-Hour Simulation Time Scrubber (Bottom Bar) */}
+                <div className="qatium-timeline-bar">
+                  <button
+                    className="timeline-play-btn"
+                    onClick={() => {
+                      setSimPlaying(!simPlaying);
+                      showToast(simPlaying ? "Đã tạm dừng mô phỏng 24h" : "Đang chạy mô phỏng biến thiên thủy lực 24h...");
+                    }}
+                    title={simPlaying ? 'Tạm dừng mô phỏng' : 'Chạy mô phỏng 24h'}
+                  >
+                    {simPlaying ? <Pause size={16} /> : <Play size={16} style={{ marginLeft: '2px' }} />}
+                  </button>
+
+                  <div className="timeline-time-info">
+                    <span className="timeline-clock">{currentSim.label}</span>
+                    <span className="timeline-desc">
+                      Q = <b>{currentSim.flow} m³/h</b> · P = <b>{currentSim.pressure} bar</b>
+                    </span>
+                  </div>
+
+                  <div className="timeline-slider-wrap">
+                    <input
+                      type="range"
+                      min="0"
+                      max="23"
+                      value={simTime}
+                      onChange={(e) => setSimTime(parseInt(e.target.value, 10))}
+                      className="timeline-slider"
+                      title="Kéo để tua nhanh dòng thời gian mô phỏng"
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <span className={`metric-badge ${
+                      simTime >= 2 && simTime <= 4 ? 'badge-danger' :
+                      (simTime >= 6 && simTime <= 8) || (simTime >= 18 && simTime <= 20) ? 'badge-warning' : 'badge-success'
+                    }`}>
+                      {currentSim.status}
+                    </span>
+                    <button
+                      className="btn-sm btn-secondary"
+                      onClick={() => setSimTime(14)}
+                      title="Đặt lại giờ mặc định"
+                    >
+                      <RotateCcw size={12} />
+                    </button>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
@@ -792,15 +973,15 @@ export default function App() {
                 <div>
                   <div className="panel-card-title">
                     <Gauge size={18} color="#0284c7" />
-                    <span>Dữ Liệu Đo Đạc Áp Lực & Lưu Lượng Thời Gian Thực</span>
+                    <span>Dữ liệu Áp & Lưu lượng</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>Chi tiết 6 điểm nút quan trắc thủy lực tự động (SCADA / IoE)</span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>6 điểm quan trắc tự động (SCADA)</span>
                 </div>
                 <button
                   className="btn-sm btn-primary"
                   onClick={() => handleExportCSV('Du_Lieu_Telemetry_6_Diem_Do.csv')}
                 >
-                  Xuất Dữ Liệu Excel
+                  Xuất Excel
                 </button>
               </div>
 
@@ -808,13 +989,13 @@ export default function App() {
                 <table className="custom-table">
                   <thead>
                     <tr>
-                      <th>Điểm Đo / Nút Mạng</th>
-                      <th>Phân Khu</th>
-                      <th>Lưu Lượng Tức Thời</th>
-                      <th>Áp Lực Đo (bar)</th>
-                      <th>Dải Chuẩn (Min - Max)</th>
-                      <th>Chênh Lệch (Delta)</th>
-                      <th>Trạng Thái</th>
+                      <th>Điểm đo</th>
+                      <th>Khu vực</th>
+                      <th>Lưu lượng</th>
+                      <th>Áp lực (bar)</th>
+                      <th>Dải chuẩn</th>
+                      <th>Chênh lệch</th>
+                      <th>Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -850,37 +1031,37 @@ export default function App() {
               <div className="metrics-grid">
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Lưu Lượng Đêm Tối Thiểu (MNF)</span>
+                    <span>Lưu lượng đêm (MNF)</span>
                     <TrendingDown size={18} color="#d97706" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">65.2</span>
                     <span className="metric-unit">m³/h</span>
                   </div>
-                  <span className="metric-badge badge-warning">Đo lúc 02:00 - 04:00 sáng</span>
+                  <span className="metric-badge badge-warning">Khung 02:00 - 04:00</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Tỷ Lệ Thất Thoát Ước Tính</span>
+                    <span>Tỷ lệ thất thoát</span>
                     <AlertTriangle size={18} color="#ef4444" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value" style={{ color: '#ef4444' }}>12.5%</span>
                   </div>
-                  <span className="metric-badge badge-danger">18.2 m³/h nước thất thoát rò rỉ</span>
+                  <span className="metric-badge badge-danger">~18.2 m³/h rò rỉ</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Điểm Nghi Vấn Rò Rỉ Đã Xác Định</span>
+                    <span>Nghi vấn rò rỉ</span>
                     <CheckCircle2 size={18} color="#10b981" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">2</span>
                     <span className="metric-unit">tuyến ống</span>
                   </div>
-                  <span className="metric-badge badge-info">Cần dò tìm sóng âm</span>
+                  <span className="metric-badge badge-info">Cần dò sóng âm</span>
                 </div>
               </div>
 
@@ -888,19 +1069,19 @@ export default function App() {
                 <div className="panel-card-header">
                   <div className="panel-card-title">
                     <AlertTriangle size={17} color="#d97706" />
-                    <span>Bảng Xếp Hạng Nguy Cơ Thất Thoát Theo Phân Vùng DMA</span>
+                    <span>Xếp hạng thất thoát theo DMA</span>
                   </div>
                 </div>
                 <div className="data-table-wrapper">
                   <table className="custom-table">
                     <thead>
                       <tr>
-                        <th>Phân Vùng DMA</th>
-                        <th>Số Hộ Dân</th>
-                        <th>Lưu Lượng Cấp Vực</th>
-                        <th>Lưu Lượng Đêm (MNF)</th>
-                        <th>Tỷ Lệ NRW</th>
-                        <th>Mức Độ Ưu Tiên Xử Lý</th>
+                        <th>Vùng DMA</th>
+                        <th>Hộ dân</th>
+                        <th>Lưu lượng cấp</th>
+                        <th>Lưu lượng đêm</th>
+                        <th>Tỷ lệ NRW</th>
+                        <th>Mức ưu tiên</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -941,58 +1122,58 @@ export default function App() {
               <div className="metrics-grid">
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Độ Đục Nước (Turbidity)</span>
+                    <span>Độ đục (Turbidity)</span>
                     <Droplets size={18} color="#0284c7" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">0.85</span>
                     <span className="metric-unit">NTU</span>
                   </div>
-                  <span className="metric-badge badge-success">Đạt chuẩn QCVN 01-1:2018 (&lt; 2.0 NTU)</span>
+                  <span className="metric-badge badge-success">Chuẩn QCVN (&lt; 2.0 NTU)</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Hàm Lượng Clo Dư (Chlorine)</span>
+                    <span>Clo dư (Chlorine)</span>
                     <CheckCircle2 size={18} color="#10b981" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">0.42</span>
                     <span className="metric-unit">mg/L</span>
                   </div>
-                  <span className="metric-badge badge-success">Đạt ngưỡng khử trùng (0.2 - 1.0 mg/L)</span>
+                  <span className="metric-badge badge-success">Ngưỡng chuẩn (0.2 - 1.0 mg/L)</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Độ Kiềm / Axit (pH)</span>
+                    <span>Độ pH</span>
                     <Activity size={18} color="#0284c7" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">7.35</span>
                   </div>
-                  <span className="metric-badge badge-info">Trung tính lý tưởng (6.5 - 8.5)</span>
+                  <span className="metric-badge badge-info">Chuẩn (6.5 - 8.5)</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Tổng Chất Rắn Hòa Tan (TDS)</span>
+                    <span>Chất rắn tan (TDS)</span>
                     <Gauge size={18} color="#64748b" />
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">128</span>
                     <span className="metric-unit">ppm</span>
                   </div>
-                  <span className="metric-badge badge-success">Nước sạch an toàn</span>
+                  <span className="metric-badge badge-success">An toàn (&lt; 1000 ppm)</span>
                 </div>
               </div>
 
               <div className="panel-card" style={{ padding: '20px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px' }}>
-                  Chứng Nhận Quan Trắc Tự Động Định Kỳ
+                  Quan trắc chất lượng định kỳ
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.6' }}>
-                  Hệ thống cảm biến đo đạc chất lượng nước đa chỉ tiêu được bố trí tại cửa xả trạm cấp nước tổng và 3 phân vùng DMA. Dữ liệu được đo đạc liên tục 15 phút/lần, tự động kích hoạt van xả cặn khi độ đục vượt quá 2.5 NTU.
+                  Cảm biến đa chỉ tiêu tại trạm tổng và 3 DMA. Chu kỳ đo 15 phút/lần, tự xả cặn khi độ đục &gt; 2.5 NTU.
                 </p>
               </div>
             </div>
@@ -1005,16 +1186,16 @@ export default function App() {
                 <div>
                   <div className="panel-card-title">
                     <FileText size={18} color="#0284c7" />
-                    <span>Báo Cáo Cân Bằng Nước & Kiểm Toán Thất Thoát (IWA Standard)</span>
+                    <span>Cân bằng nước & Kiểm toán IWA</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>Chuẩn mực Hiệp hội Nước Quốc tế IWA</span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Tiêu chuẩn Quốc tế IWA</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button className="btn-sm btn-secondary" onClick={handlePrint} title="In hoặc lưu PDF">
-                    In Báo Cáo PDF
+                    In PDF
                   </button>
                   <button className="btn-sm btn-primary" onClick={() => handleExportCSV('Bao_Cao_Can_Bang_Nuoc_IWA.csv')} title="Tải file CSV">
-                    Tải Dữ Liệu CSV
+                    Tải CSV
                   </button>
                 </div>
               </div>
@@ -1023,44 +1204,44 @@ export default function App() {
                 <table className="custom-table">
                   <thead>
                     <tr>
-                      <th>Hạng Mục Cân Bằng Nước</th>
-                      <th>Khối Lượng Tháng (m³)</th>
-                      <th>Tỷ Trọng (%)</th>
-                      <th>Doanh Thu / Giá Trị Thiệt Hại</th>
-                      <th>Đánh Giá Kỹ Thuật</th>
+                      <th>Hạng mục</th>
+                      <th>Khối lượng (m³)</th>
+                      <th>Tỷ trọng (%)</th>
+                      <th>Doanh thu / Thiệt hại</th>
+                      <th>Đánh giá</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ fontWeight: '700' }}>1. Tổng Khối Lượng Cấp Vào (System Input Volume)</td>
+                      <td style={{ fontWeight: '700' }}>1. Tổng cấp mạng lưới (SIV)</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: '700' }}>105,400 m³</td>
                       <td>100.0%</td>
                       <td>Đầu vào nhà máy</td>
                       <td><span className="metric-badge badge-info">Chuẩn đo đạc</span></td>
                     </tr>
                     <tr>
-                      <td style={{ paddingLeft: '32px', color: '#047857' }}>1.1. Lượng Nước Tiêu Thụ Có Doanh Thu (Billed Authorized)</td>
+                      <td style={{ paddingLeft: '32px', color: '#047857' }}>1.1. Tiêu thụ có doanh thu</td>
                       <td style={{ fontFamily: 'var(--font-mono)' }}>92,225 m³</td>
                       <td>87.5%</td>
                       <td>Thu tiền cư dân</td>
                       <td><span className="metric-badge badge-success">Đạt chỉ tiêu</span></td>
                     </tr>
                     <tr>
-                      <td style={{ paddingLeft: '32px', color: '#b91c1c' }}>1.2. Nước Thất Thoát Không Sinh Thu (NRW)</td>
+                      <td style={{ paddingLeft: '32px', color: '#b91c1c' }}>1.2. Thất thoát không doanh thu (NRW)</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: '700' }}>13,175 m³</td>
                       <td>12.5%</td>
-                      <td>Ước tính thiệt hại: 105.4 tr VNĐ</td>
-                      <td><span className="metric-badge badge-danger">Cần giảm về &lt; 10%</span></td>
+                      <td>Thiệt hại: ~105.4 tr VNĐ</td>
+                      <td><span className="metric-badge badge-danger">Cần giảm &lt; 10%</span></td>
                     </tr>
                     <tr>
-                      <td style={{ paddingLeft: '48px', color: '#64748b' }}>- Thất thoát kỹ thuật (Rò rỉ vật lý đường ống ngầm)</td>
+                      <td style={{ paddingLeft: '48px', color: '#64748b' }}>- Thất thoát vật lý (Rò rỉ ống ngầm)</td>
                       <td style={{ fontFamily: 'var(--font-mono)' }}>9,800 m³</td>
                       <td>9.3%</td>
                       <td>Chảy ngầm trong đất</td>
                       <td>Tập trung sửa chữa DMA 2</td>
                     </tr>
                     <tr>
-                      <td style={{ paddingLeft: '48px', color: '#64748b' }}>- Thất thoát thương mại (Sai số đồng hồ, dùng trái phép)</td>
+                      <td style={{ paddingLeft: '48px', color: '#64748b' }}>- Thất thoát thương mại (Sai số, gian lận)</td>
                       <td style={{ fontFamily: 'var(--font-mono)' }}>3,375 m³</td>
                       <td>3.2%</td>
                       <td>Sai số đo đếm</td>
