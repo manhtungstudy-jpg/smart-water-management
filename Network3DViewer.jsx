@@ -254,7 +254,7 @@ export default function Network3DViewer({
       }
     );
 
-    // 7. 3D Hydraulic Pipe Network (Semi-transparent conduits with high-visibility glowing pulses & flow arrows)
+    // 7. 3D Hydraulic Pipe Network (Sleek engineering pipes with subtle, gentle fluid beads)
     const pipeGroup = new THREE.Group();
     scene.add(pipeGroup);
     flowParticlesRef.current = [];
@@ -262,16 +262,13 @@ export default function Network3DViewer({
     const create3DPipe = (points, radius, color, name, pipeId, isFlowing, data) => {
       const curve = new THREE.CatmullRomCurve3(points);
       
-      // Outer Conduit: Semi-transparent sleek engineering pipe
-      const tubeGeo = new THREE.TubeGeometry(curve, 50, radius, 16, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, 48, radius, 16, false);
       const tubeMat = new THREE.MeshStandardMaterial({
         color: color,
-        roughness: 0.18,
-        metalness: 0.35,
-        transparent: true,
-        opacity: isDark ? 0.52 : 0.65,
-        wireframe: false,
-        depthWrite: true
+        roughness: 0.35,
+        metalness: 0.2,
+        transparent: false,
+        wireframe: false
       });
       const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
       tubeMesh.castShadow = true;
@@ -280,51 +277,27 @@ export default function Network3DViewer({
       pipeGroup.add(tubeMesh);
       clickableObjectsRef.current.push(tubeMesh);
 
-      // Inner Fluid Column: Gives depth and water presence inside the pipe
-      const innerWaterGeo = new THREE.TubeGeometry(curve, 50, radius * 0.72, 12, false);
-      const innerWaterMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0284c7 : 0x38bdf8,
-        transparent: true,
-        opacity: isDark ? 0.35 : 0.45
-      });
-      const innerWaterMesh = new THREE.Mesh(innerWaterGeo, innerWaterMat);
-      pipeGroup.add(innerWaterMesh);
-
-      // High-visibility glowing water flow pulses & directional flow arrows
+      // Subtle, gentle flowing fluid beads (neatly proportioned, calm drift, soft glow)
       if (isFlowing) {
-        const particleCount = pipeId === 'PIPE-MAIN-01' ? 16 : (pipeId === 'PIPE-HILL-02' ? 14 : 9);
-        const pulseSphereGeo = new THREE.SphereGeometry(radius * 1.75, 14, 14);
-        const flowArrowGeo = new THREE.ConeGeometry(radius * 1.55, radius * 3.2, 12);
-        
-        const glowPulseMat = new THREE.MeshStandardMaterial({
+        const count = pipeId === 'PIPE-MAIN-01' ? 8 : (pipeId === 'PIPE-HILL-02' ? 7 : 5);
+        const beadGeo = new THREE.SphereGeometry(radius * 1.14, 12, 12);
+        const beadMat = new THREE.MeshStandardMaterial({
           color: isDark ? 0x38bdf8 : 0x0284c7,
-          emissive: isDark ? 0x00ffff : 0x0ea5e9,
-          emissiveIntensity: isDark ? 3.6 : 2.4,
-          roughness: 0.1,
-          metalness: 0.2
-        });
-
-        const arrowMat = new THREE.MeshStandardMaterial({
-          color: isDark ? 0x7dd3fc : 0x0369a1,
-          emissive: isDark ? 0x38bdf8 : 0x0284c7,
-          emissiveIntensity: isDark ? 3.2 : 2.2,
-          roughness: 0.1,
-          metalness: 0.3
+          emissive: isDark ? 0x0ea5e9 : 0x38bdf8,
+          emissiveIntensity: isDark ? 0.9 : 0.6,
+          roughness: 0.3,
+          metalness: 0.1
         });
 
         const particles = [];
-        for (let i = 0; i < particleCount; i++) {
-          const isArrow = i % 2 === 1;
-          const p = new THREE.Mesh(isArrow ? flowArrowGeo : pulseSphereGeo, isArrow ? arrowMat : glowPulseMat);
-          p.renderOrder = 99; // Ensure flow pulses pop out vividly without occlusion
+        for (let i = 0; i < count; i++) {
+          const p = new THREE.Mesh(beadGeo, beadMat);
           scene.add(p);
           particles.push({
             mesh: p,
             curve: curve,
-            t: i / particleCount,
-            speed: pipeId === 'PIPE-HILL-02' ? 0.0055 : (pipeId === 'PIPE-MAIN-01' ? 0.0050 : 0.0045),
-            isArrow: isArrow,
-            pulseScale: true
+            t: i / count,
+            speed: 0.0020
           });
         }
         flowParticlesRef.current.push(...particles);
@@ -768,30 +741,14 @@ export default function Network3DViewer({
     renderer.domElement.addEventListener('pointermove', onPointerMove);
 
     // 12. Animation Loop (Flow Particles, Radar Waves, Camera Controls)
-    const defaultArrowUp = new THREE.Vector3(0, 1, 0);
     const animate = () => {
       animFrameRef.current = requestAnimationFrame(animate);
 
-      // Animate flowing water particles with forward orientation and pulsing ripples
-      const now = Date.now();
+      // Smooth, gentle water flow particles
       flowParticlesRef.current.forEach((item) => {
         item.t = (item.t + item.speed) % 1;
         const pt = item.curve.getPointAt(item.t);
-        if (pt) {
-          item.mesh.position.copy(pt);
-          
-          if (item.isArrow) {
-            const tangent = item.curve.getTangentAt(item.t);
-            if (tangent) {
-              item.mesh.quaternion.setFromUnitVectors(defaultArrowUp, tangent.normalize());
-            }
-          }
-          
-          if (item.pulseScale) {
-            const sc = 1 + 0.18 * Math.sin(now * 0.007 + item.t * Math.PI * 6);
-            item.mesh.scale.set(sc, sc, sc);
-          }
-        }
+        if (pt) item.mesh.position.copy(pt);
       });
 
       // Animate radar rings
