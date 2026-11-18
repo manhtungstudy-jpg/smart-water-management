@@ -3,7 +3,7 @@
 
 ## 🚀 Live Demo
 Trải nghiệm trực tiếp giao diện tương tác:
-👉 **[https://selinavu.github.io/smart-water-management/](https://selinavu.github.io/smart-water-management/)**
+👉 **[https://manhtungstudy-jpg.github.io/smart-water-management/](https://manhtungstudy-jpg.github.io/smart-water-management/)**
 
 ---
 
