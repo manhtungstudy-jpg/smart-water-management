@@ -1,5 +1,6 @@
 {
-  "name": "splendora-swms-mockup",
+  "name": "smart-water-management-thnc",
+  "description": "Smart Water Management SCADA & 3D Digital Twin - KĐT Trung Hòa Nhân Chính",
   "private": true,
   "version": "1.0.0",
   "type": "module",

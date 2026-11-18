@@ -1377,3 +1377,50 @@ body {
     margin-bottom: 20px;
   }
 }
+
+/* FULL-BLEED EDGE-TO-EDGE 3D DIGITAL TWIN COMMAND CENTER */
+.content-container:has(.gis-full-screen-card) {
+  padding: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  overflow: hidden;
+  height: calc(100vh - 65px);
+}
+
+.gis-full-screen-card {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: calc(100vh - 65px) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: #0b1528 !important;
+  margin: 0 !important;
+}
+
+.gis-full-screen-card .panel-card-header {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(11, 20, 38, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  z-index: 40;
+  padding: 6px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gis-full-screen-card .panel-card-header .panel-card-title span {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gis-full-screen-card .panel-card-header span:not(.panel-card-title span) {
+  display: none;
+}
