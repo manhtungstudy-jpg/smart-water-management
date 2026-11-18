@@ -43,8 +43,157 @@ import {
 } from 'lucide-react';
 import Network3DViewer from './Network3DViewer';
 
+
+// ==========================================
+// DATASET FOR MINI SPARKLINES ACROSS 4 KPI CARDS
+// ==========================================
+const kpiSparkData = {
+  '24h': {
+    periodLabel: 'Hôm nay (24h)',
+    flow: [68, 74, 62, 110, 172, 130, 142, 145.8, 138, 165, 152, 98],
+    flowVal: '145.8',
+    flowChange: '+3.2% định mức giờ',
+    flowChangeType: 'badge-success',
+    pressure: [3.45, 3.60, 3.55, 3.25, 2.95, 3.20, 3.18, 3.24, 3.22, 2.98, 3.12, 3.40],
+    pressureVal: '3.24',
+    pressureChange: 'Tối ưu: 2.8 - 3.5 bar',
+    pressureChangeType: 'badge-info',
+    nrw: [12.8, 13.5, 13.2, 12.6, 12.4, 12.5, 12.3, 12.5, 12.4, 12.6, 12.5, 12.3],
+    nrwVal: '12.5%',
+    nrwChange: '↓ 1.1% so với tuần trước',
+    nrwChangeType: 'badge-success',
+    alarms: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    alarmsVal: '3',
+    alarmsChange: '1 nghi vấn đêm',
+    alarmsChangeType: 'badge-danger',
+    labels: ['00h', '02h', '04h', '06h', '08h', '10h', '12h', '14h', '16h', '18h', '20h', '22h']
+  },
+  '7d': {
+    periodLabel: '7 Ngày qua',
+    flow: [142, 144, 149, 143, 146, 158, 155],
+    flowVal: '148.2',
+    flowChange: '+2.4% TB tuần',
+    flowChangeType: 'badge-success',
+    pressure: [3.26, 3.24, 3.18, 3.25, 3.22, 3.15, 3.20],
+    pressureVal: '3.21',
+    pressureChange: 'Dao động ±0.06 bar',
+    pressureChangeType: 'badge-info',
+    nrw: [13.6, 13.4, 13.1, 12.9, 12.7, 12.6, 12.5],
+    nrwVal: '12.8%',
+    nrwChange: '↓ 0.9% xu hướng giảm',
+    nrwChangeType: 'badge-success',
+    alarms: [2, 1, 3, 1, 2, 4, 3],
+    alarmsVal: '16',
+    alarmsChange: 'Giảm 4 sự cố so với tuần trước',
+    alarmsChangeType: 'badge-info',
+    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+  },
+  '30d': {
+    periodLabel: '30 Ngày qua (Tháng)',
+    flow: [138, 145, 148, 142],
+    flowVal: '143.5',
+    flowChange: 'Đạt 99.2% kế hoạch cấp',
+    flowChangeType: 'badge-success',
+    pressure: [3.28, 3.22, 3.20, 3.24],
+    pressureVal: '3.23',
+    pressureChange: '100% điểm đo đạt áp',
+    pressureChangeType: 'badge-info',
+    nrw: [14.2, 13.6, 13.0, 12.5],
+    nrwVal: '13.3%',
+    nrwChange: '↓ 1.7% nhờ tối ưu PRV',
+    nrwChangeType: 'badge-success',
+    alarms: [8, 11, 7, 5],
+    alarmsVal: '31',
+    alarmsChange: 'Đã xử lý dứt điểm 29/31',
+    alarmsChangeType: 'badge-success',
+    labels: ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4']
+  },
+  '1y': {
+    periodLabel: 'Năm 2026',
+    flow: [128, 130, 135, 142, 158, 165, 162, 155, 148, 142, 138, 132],
+    flowVal: '144.6',
+    flowChange: '+5.8% so với năm 2025',
+    flowChangeType: 'badge-success',
+    pressure: [3.32, 3.30, 3.28, 3.25, 3.18, 3.15, 3.16, 3.20, 3.24, 3.26, 3.28, 3.30],
+    pressureVal: '3.25',
+    pressureChange: 'Hệ số an toàn: 1.15',
+    pressureChangeType: 'badge-info',
+    nrw: [15.8, 15.2, 14.8, 14.5, 14.0, 13.8, 13.5, 13.2, 13.0, 12.8, 12.6, 12.5],
+    nrwVal: '13.8%',
+    nrwChange: 'Mục tiêu: < 12.0%',
+    nrwChangeType: 'badge-info',
+    alarms: [32, 28, 35, 41, 38, 45, 42, 36, 30, 26, 22, 18],
+    alarmsVal: '393',
+    alarmsChange: 'Giảm 24% sự cố bục vỡ',
+    alarmsChangeType: 'badge-success',
+    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12']
+  }
+};
+
+const renderMiniSparkline = (data, color, type = 'area', isAlert = false) => {
+  if (!data || data.length === 0) return null;
+  const w = 120;
+  const h = 38;
+  const padding = 4;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = (max - min) || 1;
+
+  if (type === 'bar') {
+    const barW = Math.max(3, Math.floor((w - (data.length - 1) * 3) / data.length));
+    return (
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+        {data.map((val, i) => {
+          const barH = Math.max(3, ((val - min) / range) * (h - padding * 2) + 4);
+          const x = i * ((w - barW) / (data.length - 1 || 1));
+          const y = h - padding - barH;
+          return (
+            <rect
+              key={i}
+              x={x}
+              y={y}
+              width={barW}
+              height={barH}
+              rx="2"
+              fill={val > 0 ? (isAlert ? '#ef4444' : color) : '#cbd5e1'}
+              opacity={i === data.length - 1 ? 1 : 0.65}
+            />
+          );
+        })}
+      </svg>
+    );
+  }
+
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1 || 1)) * w;
+    const y = h - padding - ((val - min) / range) * (h - padding * 2);
+    return { x, y };
+  });
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaD = `${pathD} L ${w} ${h} L 0 ${h} Z`;
+  const lastP = points[points.length - 1];
+
+  return (
+    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+      <defs>
+        <linearGradient id={`grad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.32" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.0" />
+        </linearGradient>
+      </defs>
+      {type === 'area' && <path d={areaD} fill={`url(#grad-${color.replace('#', '')})`} />}
+      <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lastP.x} cy={lastP.y} r="3" fill={color} stroke="#ffffff" strokeWidth="1.5" />
+    </svg>
+  );
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('gis');
+  const [kpiPeriod, setKpiPeriod] = useState('24h'); // '24h' | '7d' | '30d' | '1y'
+  const [telemetryZoneFilter, setTelemetryZoneFilter] = useState('all');
+  const [telemetrySearch, setTelemetrySearch] = useState('');
   const [selectedDma, setSelectedDma] = useState('DMA 2');
   const [timeframe, setTimeframe] = useState('24h'); // '24h' | '7d' | '30d'
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -484,70 +633,132 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 4 KPI Cards */}
+              {/* 4 KPI Cards With Timeframe Filter & Mini Sparklines */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Activity size={15} color="#0284c7" />
+                  <span>Chỉ số vận hành & Xu hướng thời gian:</span>
+                </div>
+                <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', gap: '3px', border: '1px solid #e2e8f0' }}>
+                  {[
+                    { id: '24h', label: 'Hôm nay (24h)' },
+                    { id: '7d', label: '7 Ngày' },
+                    { id: '30d', label: '30 Ngày' },
+                    { id: '1y', label: 'Năm' }
+                  ].map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setKpiPeriod(p.id)}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: kpiPeriod === p.id ? 700 : 500,
+                        border: 'none',
+                        borderRadius: '6px',
+                        background: kpiPeriod === p.id ? '#ffffff' : 'transparent',
+                        color: kpiPeriod === p.id ? '#0284c7' : '#64748b',
+                        boxShadow: kpiPeriod === p.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="metrics-grid">
-                <div className="metric-card">
+                {/* CARD 1: LƯU LƯỢNG CẤP */}
+                <div className="metric-card" style={{ position: 'relative', overflow: 'hidden' }}>
                   <div className="metric-header">
                     <span>Lưu lượng cấp</span>
                     <div className="metric-icon-wrap" style={{ background: '#e0f2fe', color: '#0284c7' }}>
                       <Droplets size={18} />
                     </div>
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value">145.8</span>
+                  <div className="metric-body" style={{ alignItems: 'baseline' }}>
+                    <span className="metric-value">{kpiSparkData[kpiPeriod].flowVal}</span>
                     <span className="metric-unit">m³/h</span>
                   </div>
-                  <div>
-                    <span className="metric-badge badge-success">↑ 3.2% định mức giờ</span>
+                  <div style={{ margin: '4px 0 2px 0', height: '38px', width: '100%' }}>
+                    {renderMiniSparkline(kpiSparkData[kpiPeriod].flow, '#0284c7', 'area')}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className={`metric-badge ${kpiSparkData[kpiPeriod].flowChangeType}`}>
+                      {kpiSparkData[kpiPeriod].flowChange}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{kpiSparkData[kpiPeriod].periodLabel}</span>
                   </div>
                 </div>
 
-                <div className="metric-card">
+                {/* CARD 2: ÁP LỰC TRUNG BÌNH */}
+                <div className="metric-card" style={{ position: 'relative', overflow: 'hidden' }}>
                   <div className="metric-header">
                     <span>Áp lực trung bình</span>
                     <div className="metric-icon-wrap" style={{ background: '#ecfdf5', color: '#10b981' }}>
                       <Gauge size={18} />
                     </div>
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value">3.2</span>
+                  <div className="metric-body" style={{ alignItems: 'baseline' }}>
+                    <span className="metric-value">{kpiSparkData[kpiPeriod].pressureVal}</span>
                     <span className="metric-unit">bar</span>
                   </div>
-                  <div>
-                    <span className="metric-badge badge-info">Tối ưu: 2.8 - 3.5 bar</span>
+                  <div style={{ margin: '4px 0 2px 0', height: '38px', width: '100%' }}>
+                    {renderMiniSparkline(kpiSparkData[kpiPeriod].pressure, '#10b981', 'area')}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className={`metric-badge ${kpiSparkData[kpiPeriod].pressureChangeType}`}>
+                      {kpiSparkData[kpiPeriod].pressureChange}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{kpiSparkData[kpiPeriod].periodLabel}</span>
                   </div>
                 </div>
 
-                <div className="metric-card">
+                {/* CARD 3: THẤT THOÁT (NRW) */}
+                <div className="metric-card" style={{ position: 'relative', overflow: 'hidden' }}>
                   <div className="metric-header">
                     <span>Thất thoát (NRW)</span>
                     <div className="metric-icon-wrap" style={{ background: '#fef3c7', color: '#d97706' }}>
                       <TrendingDown size={18} />
                     </div>
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value">12.5%</span>
+                  <div className="metric-body" style={{ alignItems: 'baseline' }}>
+                    <span className="metric-value">{kpiSparkData[kpiPeriod].nrwVal}</span>
                   </div>
-                  <div>
-                    <span className="metric-badge badge-success">↓ 1.1% theo tuần</span>
+                  <div style={{ margin: '4px 0 2px 0', height: '38px', width: '100%' }}>
+                    {renderMiniSparkline(kpiSparkData[kpiPeriod].nrw, '#d97706', 'area')}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className={`metric-badge ${kpiSparkData[kpiPeriod].nrwChangeType}`}>
+                      {kpiSparkData[kpiPeriod].nrwChange}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{kpiSparkData[kpiPeriod].periodLabel}</span>
                   </div>
                 </div>
 
-                <div className="metric-card">
+                {/* CARD 4: CẢNH BÁO SỰ CỐ */}
+                <div className="metric-card" style={{ position: 'relative', overflow: 'hidden' }}>
                   <div className="metric-header">
                     <span>Cảnh báo</span>
                     <div className="metric-icon-wrap" style={{ background: '#fee2e2', color: '#ef4444' }}>
                       <AlertTriangle size={18} />
                     </div>
                   </div>
-                  <div className="metric-body">
+                  <div className="metric-body" style={{ alignItems: 'baseline' }}>
                     <span className="metric-value" style={{ color: '#ef4444' }}>
-                      {alarms.filter(a => !a.handled).length}
+                      {kpiSparkData[kpiPeriod].alarmsVal}
                     </span>
                     <span className="metric-unit">sự cố</span>
                   </div>
-                  <div>
-                    <span className="metric-badge badge-danger">1 nghi vấn đêm</span>
+                  <div style={{ margin: '4px 0 2px 0', height: '38px', width: '100%' }}>
+                    {renderMiniSparkline(kpiSparkData[kpiPeriod].alarms, '#ef4444', 'bar', true)}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className={`metric-badge ${kpiSparkData[kpiPeriod].alarmsChangeType}`}>
+                      {kpiSparkData[kpiPeriod].alarmsChange}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{kpiSparkData[kpiPeriod].periodLabel}</span>
                   </div>
                 </div>
               </div>
@@ -1880,7 +2091,7 @@ export default function App() {
                         );
                       })}
 
-                      {/* Active Hour Glowing Cursor Pin */}
+                                            {/* Active Hour Glowing Cursor Pin */}
                       {(() => {
                         const curX = 10 + (simTime / 23) * 440;
                         return (
@@ -1916,148 +2127,500 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 3: TELEMETRY (ÁP LỰC & LƯU LƯỢNG) */}
+          {/* TAB 3: TELEMETRY (ÁP LỰC & LƯU LƯỢNG - SCADA MẠNG GIS CẢI TIẾN) */}
           {activeTab === 'telemetry' && (
-            <div className="panel-card">
-              <div className="panel-card-header">
-                <div>
-                  <div className="panel-card-title">
-                    <Gauge size={18} color="#0284c7" />
-                    <span>Dữ liệu Áp & Lưu lượng</span>
-                  </div>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>6 điểm quan trắc tự động (SCADA)</span>
-                </div>
-                <button
-                  className="btn-sm btn-primary"
-                  onClick={() => handleExportCSV('Du_Lieu_Telemetry_6_Diem_Do.csv')}
-                >
-                  Xuất Excel
-                </button>
-              </div>
-
-              <div className="data-table-wrapper">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Điểm đo</th>
-                      <th>Khu vực</th>
-                      <th>Lưu lượng</th>
-                      <th>Áp lực (bar)</th>
-                      <th>Dải chuẩn</th>
-                      <th>Chênh lệch</th>
-                      <th>Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { node: 'FM-01 / Trạm bơm P1', zone: 'Đầu nguồn cấp', flow: '145.8 m³/h', press: '4.2 bar', range: '3.8 - 4.5 bar', delta: '+0.1 bar', status: 'Tối ưu', tag: 'badge-success' },
-                      { node: 'PRV-02 / Cổng vào DMA 1', zone: 'DMA 1 (Phía Nam)', flow: '48.2 m³/h', press: '3.1 bar', range: '2.8 - 3.4 bar', delta: '-0.2 bar', status: 'Ổn định', tag: 'badge-info' },
-                      { node: 'PRV-03 / Trục chính DMA 2', zone: 'DMA 2 (Trung Tâm)', flow: '62.4 m³/h', press: '3.2 bar', range: '2.8 - 3.5 bar', delta: '+0.0 bar', status: 'Ổn định', tag: 'badge-info' },
-                      { node: 'FM-04 / Điểm cao DMA 3', zone: 'DMA 3 (Ven Hồ)', flow: '35.2 m³/h', press: '3.4 bar', range: '2.5 - 3.2 bar', delta: '+0.4 bar', status: 'Cảnh báo Áp cao', tag: 'badge-warning' },
-                      { node: 'SN-05 / Cụm biệt thự BT2', zone: 'DMA 2', flow: '18.4 m³/h', press: '2.4 bar', range: '2.8 - 3.4 bar', delta: '-0.5 bar', status: 'Sụt áp cục bộ', tag: 'badge-danger' },
-                      { node: 'FM-06 / Tuyến xả cặn', zone: 'Bể ngầm', flow: '0.0 m³/h', press: '3.0 bar', range: '2.8 - 3.5 bar', delta: '0.0 bar', status: 'Đang khóa', tag: 'badge-info' },
-                    ].map((row, idx) => (
-                      <tr key={idx}>
-                        <td style={{ fontWeight: '700' }}>{row.node}</td>
-                        <td>{row.zone}</td>
-                        <td style={{ fontFamily: 'var(--font-mono)' }}>{row.flow}</td>
-                        <td style={{ fontWeight: '700', color: '#0284c7' }}>{row.press}</td>
-                        <td style={{ color: '#64748b' }}>{row.range}</td>
-                        <td style={{ fontFamily: 'var(--font-mono)' }}>{row.delta}</td>
-                        <td>
-                          <span className={`metric-badge ${row.tag}`}>{row.status}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: LEAK DETECTION (PHÁT HIỆN RÒ RỈ) */}
-          {activeTab === 'leaks' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="metrics-grid">
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <span>Lưu lượng đêm (MNF)</span>
-                    <TrendingDown size={18} color="#d97706" />
+              {/* GIS SCADA Network Overview Banner */}
+              <div style={{
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                color: '#ffffff',
+                borderRadius: '14px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+                gap: '18px'
+              }}>
+                <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '16px' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Tổng Lưu Lượng Cấp Vào
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value">65.2</span>
-                    <span className="metric-unit">m³/h</span>
+                  <div style={{ fontSize: '26px', fontWeight: '800', color: '#38bdf8', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    4,040.0 <span style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0' }}>m³/h</span>
                   </div>
-                  <span className="metric-badge badge-warning">Khung 02:00 - 04:00</span>
+                  <div style={{ fontSize: '11.5px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle2 size={12} />
+                    <span>Nguồn Sông Đà & 4 Cửa Ngõ chính</span>
+                  </div>
                 </div>
 
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <span>Tỷ lệ thất thoát</span>
-                    <AlertTriangle size={18} color="#ef4444" />
+                <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '16px' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Áp Lực Trung Bình Mạng
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value" style={{ color: '#ef4444' }}>12.5%</span>
+                  <div style={{ fontSize: '26px', fontWeight: '800', color: '#10b981', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    3.28 <span style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0' }}>bar</span>
                   </div>
-                  <span className="metric-badge badge-danger">~18.2 m³/h rò rỉ</span>
+                  <div style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '4px' }}>
+                    Dải chuẩn vận hành: 2.80 - 3.50 bar
+                  </div>
                 </div>
 
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <span>Nghi vấn rò rỉ</span>
-                    <CheckCircle2 size={18} color="#10b981" />
+                <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '16px' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Trạm SCADA Trực Tuyến
                   </div>
-                  <div className="metric-body">
-                    <span className="metric-value">2</span>
-                    <span className="metric-unit">tuyến ống</span>
+                  <div style={{ fontSize: '26px', fontWeight: '800', color: '#fbbf24', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    14 / 14 <span style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0' }}>Điểm đo</span>
                   </div>
-                  <span className="metric-badge badge-info">Cần dò sóng âm</span>
+                  <div style={{ fontSize: '11.5px', color: '#38bdf8', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Radio size={12} />
+                    <span>IoT 4G/NB-IoT Telemetry 100%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Độ Ổn Định Thủy Lực
+                  </div>
+                  <div style={{ fontSize: '26px', fontWeight: '800', color: '#4ade80', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    98.6%
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '4px' }}>
+                    1 điểm cận ngưỡng thấp (Triều Khúc)
+                  </div>
                 </div>
               </div>
 
+              {/* Main Panel Card */}
               <div className="panel-card">
-                <div className="panel-card-header">
-                  <div className="panel-card-title">
-                    <AlertTriangle size={17} color="#d97706" />
-                    <span>Xếp hạng thất thoát theo DMA</span>
+                <div className="panel-card-header" style={{ flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <div className="panel-card-title">
+                      <Gauge size={19} color="#0284c7" />
+                      <span>Dữ liệu Áp Lực & Lưu Lượng SCADA (14 Trạm Mạng GIS)</span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Chuẩn hóa theo Mạng lưới GIS Số Hóa: Tuyến truyền dẫn Sông Đà, Trung Hòa - Nhân Chính, Cầu Giấy, Nam Trung Yên
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {/* Search Input */}
+                    <div style={{ position: 'relative' }}>
+                      <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                      <input
+                        type="text"
+                        placeholder="Tìm trạm, tuyến, DMA..."
+                        value={telemetrySearch}
+                        onChange={(e) => setTelemetrySearch(e.target.value)}
+                        style={{
+                          padding: '6px 12px 6px 30px',
+                          fontSize: '12px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          outline: 'none',
+                          width: '180px'
+                        }}
+                      />
+                    </div>
+
+                    <button
+                      className="btn-sm btn-primary"
+                      onClick={() => handleExportCSV('Du_Lieu_Telemetry_SCADA_GIS_14_Diem.csv')}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <Download size={14} />
+                      <span>Xuất Excel</span>
+                    </button>
                   </div>
                 </div>
+
+                {/* DMA Zone Filter Pills */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                  {[
+                    { id: 'all', label: 'Tất cả (14)' },
+                    { id: 'gateway', label: 'Cửa Ngõ Nguồn & PRV (5)' },
+                    { id: 'thnc', label: 'Cụm THNC 01, 02, 03 (5)' },
+                    { id: 'nty', label: 'Nam Trung Yên & PVI (2)' },
+                    { id: 'cg', label: 'Cầu Giấy & Triều Khúc (2)' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setTelemetryZoneFilter(tab.id)}
+                      style={{
+                        padding: '5px 12px',
+                        fontSize: '12px',
+                        fontWeight: telemetryZoneFilter === tab.id ? 700 : 500,
+                        borderRadius: '20px',
+                        border: '1px solid',
+                        borderColor: telemetryZoneFilter === tab.id ? '#0284c7' : '#e2e8f0',
+                        background: telemetryZoneFilter === tab.id ? '#f0f9ff' : '#ffffff',
+                        color: telemetryZoneFilter === tab.id ? '#0284c7' : '#475569',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Table Data */}
                 <div className="data-table-wrapper">
                   <table className="custom-table">
                     <thead>
                       <tr>
-                        <th>Vùng DMA</th>
-                        <th>Hộ dân</th>
-                        <th>Lưu lượng cấp</th>
-                        <th>Lưu lượng đêm</th>
-                        <th>Tỷ lệ NRW</th>
-                        <th>Mức ưu tiên</th>
+                        <th>Mã Trạm / Thiết Bị</th>
+                        <th>Vị Trí Mạng GIS</th>
+                        <th>Phân Vùng DMA</th>
+                        <th>Cỡ Ống</th>
+                        <th>Lưu Lượng (m³/h)</th>
+                        <th>Áp Lực (bar)</th>
+                        <th>Dải Chuẩn</th>
+                        <th>Chênh Lệch</th>
+                        <th>Pin / 4G</th>
+                        <th>Trạng Thái Vận Hành</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { id: 'FM-INLET-SD', name: 'Đồng Hồ Tổng Nguồn Sông Đà', location: 'Cửa ngõ Đại lộ Thăng Long (Km4)', dma: 'Vùng Nguồn Tây', group: 'gateway', dn: 'DN800', flow: '1,450.0', press: '5.20', range: '4.8 - 5.5 bar', delta: '+0.10', batt: '100%', status: 'Rất tốt (Đầu nguồn)', tag: 'badge-success' },
+                        { id: 'PRV-GATE-WEST', name: 'Trạm Van Giảm Áp PRV Cửa Ngõ Tây', location: 'ĐL Thăng Long - Vành Đai 3', dma: 'Trạm Giảm Áp', group: 'gateway', dn: 'DN600', flow: '1,450.0', press: '3.35', range: '3.2 - 3.5 bar', delta: '+0.05', batt: '99%', status: 'Điều áp tối ưu', tag: 'badge-success' },
+                        { id: 'FM-INLET-VD3-N', name: 'Đồng Hồ Cửa Ngõ Bắc Vành Đai 3', location: 'Tuyến dẫn Phạm Hùng - Keangnam', dma: 'DMA Cửa Ngõ Bắc', group: 'gateway', dn: 'DN500', flow: '980.0', press: '4.10', range: '3.8 - 4.3 bar', delta: '+0.00', batt: '98%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'FM-INLET-NT', name: 'Đồng Hồ Cửa Ngõ Đông Nam', location: 'Tuyến dẫn Nguyễn Trãi - Thanh Xuân', dma: 'DMA Thượng Đình', group: 'gateway', dn: 'DN500', flow: '890.0', press: '3.90', range: '3.6 - 4.2 bar', delta: '+0.00', batt: '97%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'FM-INLET-LVL', name: 'Đồng Hồ Cửa Ngõ Phía Đông', location: 'Tuyến dẫn Lê Văn Lương - Láng Hạ', dma: 'DMA Láng Hạ', group: 'gateway', dn: 'DN400', flow: '720.0', press: '3.80', range: '3.5 - 4.0 bar', delta: '-0.10', batt: '95%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'PT-HDT-01', name: 'Cảm Biến Áp Lực Ngã Tư Hoàng Đạo Thúy', location: 'Trục Trung Tâm Cụm 34T & Mandarin', dma: 'DMA THNC-02', group: 'thnc', dn: 'DN300', flow: '128.5', press: '3.24', range: '2.8 - 3.5 bar', delta: '+0.04', batt: '98%', status: 'Tối ưu', tag: 'badge-success' },
+                        { id: 'PT-TDH-03', name: 'Cảm Biến Áp Lực Trần Duy Hưng', location: "Trục chính D'Capitale & Charmvit", dma: 'DMA THNC-01', group: 'thnc', dn: 'DN300', flow: '145.8', press: '3.42', range: '2.8 - 3.5 bar', delta: '+0.12', batt: '99%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'PT-LVL-04', name: 'Cảm Biến Áp Lực Lê Văn Lương', location: 'Trục Diamond Flower & Star City', dma: 'DMA THNC-03', group: 'thnc', dn: 'DN300', flow: '162.0', press: '3.38', range: '2.8 - 3.5 bar', delta: '+0.08', batt: '96%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'FM-SUB-01', name: "Đồng Hồ Phân Vùng D&apos;Capitale - Big C", location: "Nhánh cấp D'Capitale C1-C6", dma: 'DMA THNC-01', group: 'thnc', dn: 'DN200', flow: '145.8', press: '3.40', range: '2.8 - 3.5 bar', delta: '+0.10', batt: '98%', status: 'AMR Online', tag: 'badge-info' },
+                        { id: 'FM-SUB-02', name: 'Đồng Hồ Phân Vùng Mandarin Garden & N04', location: 'Nhánh cấp Cụm Hoàng Đạo Thúy', dma: 'DMA THNC-02', group: 'thnc', dn: 'DN200', flow: '128.5', press: '3.22', range: '2.8 - 3.5 bar', delta: '+0.02', batt: '97%', status: 'AMR Online', tag: 'badge-info' },
+                        { id: 'PT-NORTH-05', name: 'Cảm Biến Áp Tuyến Nam Trung Yên', location: 'Tòa Tháp PVI & Cụm B10A/B11B', dma: 'DMA Nam Trung Yên', group: 'nty', dn: 'DN250', flow: '95.0', press: '2.85', range: '2.6 - 3.2 bar', delta: '-0.15', batt: '93%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'FM-INLET-VD3-N2', name: 'Đồng Hồ Cụm Căn Hộ Nam Trung Yên', location: 'Phố Mạc Thái Tổ - Hạ Yên', dma: 'DMA Nam Trung Yên', group: 'nty', dn: 'DN200', flow: '84.2', press: '2.90', range: '2.6 - 3.2 bar', delta: '-0.10', batt: '94%', status: 'Ổn định', tag: 'badge-info' },
+                        { id: 'PT-CG-09', name: 'Cảm Biến Áp Khu Công Nghệ Duy Tân', location: 'Cụm FPT Tower & Viettel Cầu Giấy', dma: 'DMA Cầu Giấy', group: 'cg', dn: 'DN250', flow: '110.0', press: '3.15', range: '2.8 - 3.4 bar', delta: '+0.05', batt: '96%', status: 'Tối ưu', tag: 'badge-success' },
+                        { id: 'PT-SOUTH-08', name: 'Cảm Biến Điểm Bất Lợi Triều Khúc', location: 'Nút điểm cao cuối mạng Triều Khúc', dma: 'DMA Thanh Xuân Nam', group: 'cg', dn: 'DN200', flow: '72.0', press: '2.75', range: '2.8 - 3.4 bar', delta: '-0.25', batt: '92%', status: 'Cận ngưỡng thấp', tag: 'badge-warning' },
+                      ]
+                        .filter(row => {
+                          if (telemetryZoneFilter !== 'all' && row.group !== telemetryZoneFilter) return false;
+                          if (telemetrySearch.trim()) {
+                            const q = telemetrySearch.toLowerCase();
+                            return row.name.toLowerCase().includes(q) || row.id.toLowerCase().includes(q) || row.location.toLowerCase().includes(q) || row.dma.toLowerCase().includes(q);
+                          }
+                          return true;
+                        })
+                        .map((row, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <div style={{ fontWeight: '700', color: '#0f172a' }}>{row.id}</div>
+                              <div style={{ fontSize: '12px', color: '#64748b' }}>{row.name}</div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                <MapPin size={13} color="#0284c7" />
+                                <span>{row.location}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{row.dma}</span>
+                            </td>
+                            <td style={{ fontFamily: 'var(--font-mono)', color: '#64748b' }}>{row.dn}</td>
+                            <td style={{ fontFamily: 'var(--font-mono)', fontWeight: '700', color: '#0284c7' }}>{row.flow}</td>
+                            <td style={{ fontWeight: '800', color: parseFloat(row.press) < 2.8 ? '#d97706' : '#10b981', fontFamily: 'var(--font-mono)' }}>
+                              {row.press}
+                            </td>
+                            <td style={{ color: '#64748b', fontSize: '12px' }}>{row.range}</td>
+                            <td style={{ fontFamily: 'var(--font-mono)', color: row.delta.startsWith('-') ? '#ef4444' : '#10b981' }}>{row.delta}</td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a' }}>
+                                <Radio size={12} />
+                                <span>{row.batt}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`metric-badge ${row.tag}`}>{row.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    * Toàn bộ 14 trạm đều tích hợp chuẩn truyền tin thời gian thực với Mạng GIS Digital Twin Hà Nội.
+                  </div>
+                  <button
+                    className="btn-sm btn-secondary"
+                    onClick={() => setActiveTab('gis')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Layers size={14} color="#0284c7" />
+                    <span>Xem Định Vị Trạm Trên Mạng GIS 3D →</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: LEAK DETECTION (PHÁT HIỆN RÒ RỈ & QUẢN LÝ THẤT THOÁT NRW) */}
+          {activeTab === 'leaks' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* 4 Top Indicator Cards */}
+              <div className="metrics-grid">
+                <div className="metric-card">
+                  <div className="metric-header">
+                    <span>Lưu lượng đêm tối thiểu (MNF)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#fef3c7', color: '#d97706' }}>
+                      <TrendingDown size={18} />
+                    </div>
+                  </div>
+                  <div className="metric-body">
+                    <span className="metric-value">185.4</span>
+                    <span className="metric-unit">m³/h</span>
+                  </div>
+                  <span className="metric-badge badge-warning">Khung 02:00 - 04:00 (+20.4 m³ lệch chuẩn)</span>
+                </div>
+
+                <div className="metric-card">
+                  <div className="metric-header">
+                    <span>Tỷ lệ thất thoát kỹ thuật (NRW)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#fee2e2', color: '#ef4444' }}>
+                      <AlertTriangle size={18} />
+                    </div>
+                  </div>
+                  <div className="metric-body">
+                    <span className="metric-value" style={{ color: '#ef4444' }}>12.5%</span>
+                  </div>
+                  <span className="metric-badge badge-danger">~505 m³/ngày tổn thất rò rỉ</span>
+                </div>
+
+                <div className="metric-card">
+                  <div className="metric-header">
+                    <span>Nghi vấn rò rỉ âm thanh (Acoustic)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#fee2e2', color: '#ef4444' }}>
+                      <ShieldAlert size={18} />
+                    </div>
+                  </div>
+                  <div className="metric-body">
+                    <span className="metric-value" style={{ color: '#d97706' }}>3</span>
+                    <span className="metric-unit">điểm khoanh vùng</span>
+                  </div>
+                  <span className="metric-badge badge-warning">Tuyến D300 HL & D200 LVL</span>
+                </div>
+
+                <div className="metric-card">
+                  <div className="metric-header">
+                    <span>Tiết kiệm khi kiểm soát NRW</span>
+                    <div className="metric-icon-wrap" style={{ background: '#ecfdf5', color: '#10b981' }}>
+                      <CheckCircle2 size={18} />
+                    </div>
+                  </div>
+                  <div className="metric-body">
+                    <span className="metric-value" style={{ color: '#10b981' }}>420</span>
+                    <span className="metric-unit">tr.đ/tháng</span>
+                  </div>
+                  <span className="metric-badge badge-success">Mục tiêu giảm từ 12.5% xuống 10%</span>
+                </div>
+              </div>
+
+              {/* DMA Loss Breakdown Table */}
+              <div className="panel-card">
+                <div className="panel-card-header">
+                  <div>
+                    <div className="panel-card-title">
+                      <Layers size={18} color="#0284c7" />
+                      <span>Cân Bằng Nước & Tỷ Lệ Thất Thoát Theo 5 Phân Vùng DMA (Mạng GIS)</span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Đối chiếu lưu lượng cấp vào vs lưu lượng tiêu thụ thương mại AMR theo thời gian thực
+                    </span>
+                  </div>
+                  <button
+                    className="btn-sm btn-primary"
+                    onClick={() => handleExportCSV('Bao_Cao_That_Thoat_NRW_5_DMA.csv')}
+                  >
+                    Xuất Báo Cáo
+                  </button>
+                </div>
+
+                <div className="data-table-wrapper">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Phân Vùng DMA</th>
+                        <th>Khu Vực GIS Trọng Điểm</th>
+                        <th>Quy Mô Cư Dân</th>
+                        <th>Lưu Lượng Cấp (m³/h)</th>
+                        <th>Tiêu Thụ AMR (m³/h)</th>
+                        <th>MNF Đêm (m³/h)</th>
+                        <th>Tỷ Lệ NRW</th>
+                        <th>Mức Ưu Tiên Khắc Phục</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td style={{ fontWeight: '700' }}>DMA 2 (Trung Tâm)</td>
-                        <td>450 Hộ</td>
-                        <td>62.4 m³/h</td>
-                        <td>28.5 m³/h</td>
-                        <td style={{ fontWeight: '700', color: '#ef4444' }}>13.2%</td>
-                        <td><span className="metric-badge badge-danger">Rất Cao (Khẩn)</span></td>
+                        <td>
+                          <div style={{ fontWeight: '700', color: '#0f172a' }}>DMA THNC-02</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Cụm Hoàng Đạo Thúy - Mandarin</div>
+                        </td>
+                        <td>Mandarin Garden, 34T, Cụm N04 & N05, Chuyên Amsterdam</td>
+                        <td>8,450 Hộ & VP</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>720.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>625.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: '#d97706', fontWeight: 600 }}>38.5 m³/h</td>
+                        <td style={{ fontWeight: '800', color: '#ef4444', fontSize: '14px' }}>13.2%</td>
+                        <td><span className="metric-badge badge-danger">Ưu Tiên Cao (Khoanh van)</span></td>
                       </tr>
                       <tr>
-                        <td style={{ fontWeight: '700' }}>DMA 1 (Phía Nam)</td>
-                        <td>320 Hộ</td>
-                        <td>48.2 m³/h</td>
-                        <td>21.0 m³/h</td>
-                        <td style={{ fontWeight: '700', color: '#f59e0b' }}>11.8%</td>
-                        <td><span className="metric-badge badge-warning">Trung Bình</span></td>
+                        <td>
+                          <div style={{ fontWeight: '700', color: '#0f172a' }}>DMA THNC-03</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Cụm Lê Văn Lương - Nhân Chính</div>
+                        </td>
+                        <td>Diamond Flower Tower, Star City, HUD Tower, Hoàng Ngân</td>
+                        <td>6,100 Hộ</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>580.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>495.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: '#ef4444', fontWeight: 600 }}>42.0 m³/h</td>
+                        <td style={{ fontWeight: '800', color: '#ef4444', fontSize: '14px' }}>14.6%</td>
+                        <td><span className="metric-badge badge-danger">Báo Động Đỏ (Ống thép cũ)</span></td>
                       </tr>
                       <tr>
-                        <td style={{ fontWeight: '700' }}>DMA 3 (Ven Hồ)</td>
-                        <td>280 Hộ</td>
-                        <td>35.2 m³/h</td>
-                        <td>15.7 m³/h</td>
-                        <td style={{ fontWeight: '700', color: '#10b981' }}>10.5%</td>
-                        <td><span className="metric-badge badge-success">Thấp (Tốt)</span></td>
+                        <td>
+                          <div style={{ fontWeight: '700', color: '#0f172a' }}>DMA THNC-01</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Cụm Trần Duy Hưng - D&apos;Capitale</div>
+                        </td>
+                        <td>Tổ hợp Vinhomes D&apos;Capitale (C1-C6), Big C Thăng Long, Charmvit</td>
+                        <td>9,820 Hộ & TTTM</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>850.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>755.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: '#10b981', fontWeight: 600 }}>35.2 m³/h</td>
+                        <td style={{ fontWeight: '800', color: '#f59e0b', fontSize: '14px' }}>11.2%</td>
+                        <td><span className="metric-badge badge-warning">Trung Bình (Đã lắp PRV)</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div style={{ fontWeight: '700', color: '#0f172a' }}>DMA Nam Trung Yên</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>KĐT Nam Trung Yên & PVI Tower</div>
+                        </td>
+                        <td>Chung cư B10A, B11B, A10, A14 & Tòa Tháp PVI (26T)</td>
+                        <td>6,280 Hộ</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>610.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>545.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: '#10b981', fontWeight: 600 }}>28.4 m³/h</td>
+                        <td style={{ fontWeight: '800', color: '#10b981', fontSize: '14px' }}>10.6%</td>
+                        <td><span className="metric-badge badge-success">Mức Tốt (Mạng HDPE)</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div style={{ fontWeight: '700', color: '#0f172a' }}>DMA Cầu Giấy</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Khu Công Nghệ Duy Tân</div>
+                        </td>
+                        <td>FPT Tower, FPT Duy Tân, Viettel Cầu Giấy, CMC Creative Space</td>
+                        <td>4,500 Cơ quan/VP</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>480.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>440.0 m³/h</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: '#10b981', fontWeight: 600 }}>18.0 m³/h</td>
+                        <td style={{ fontWeight: '800', color: '#10b981', fontSize: '14px' }}>8.3%</td>
+                        <td><span className="metric-badge badge-success">Rất Tốt (AMR 100%)</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Acoustic & AI Leak Incidents Log */}
+              <div className="panel-card">
+                <div className="panel-card-header">
+                  <div>
+                    <div className="panel-card-title">
+                      <ShieldAlert size={18} color="#ef4444" />
+                      <span>Nhật Ký Cảnh Báo Âm Thanh Rò Rỉ Định Vị GIS (AI Acoustic Leak Logs)</span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Dữ liệu phân tích cảm biến thủy âm bề mặt kết hợp thuật toán AI nhận diện xung áp lực đêm
+                    </span>
+                  </div>
+                </div>
+
+                <div className="data-table-wrapper">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Mã Sự Cố</th>
+                        <th>Vị Trí Tuyến Ống GIS</th>
+                        <th>Loại Tuyến & Đường Kính</th>
+                        <th>Tần Số & Cường Độ Âm</th>
+                        <th>Độ Tin Cậy AI</th>
+                        <th>Lưu Lượng Rò Ước Tính</th>
+                        <th>Trạng Thái & Hành Động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ fontWeight: '700', color: '#ef4444' }}>LK-2026-11-01</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>Ngõ 18 Hoàng Đạo Thúy (Đối diện 34T)</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Tọa độ GIS: [0, 0, 0] - DMA THNC-02</div>
+                        </td>
+                        <td>Ống gang dẻo DI DN300</td>
+                        <td>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: '#d97706' }}>850 Hz / 48 dB</span>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: '700', color: '#ef4444' }}>94%</span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>~14.5 m³/h</td>
+                        <td>
+                          <button
+                            className="btn-sm btn-primary"
+                            onClick={() => { setActiveTab('gis'); showToast('Đang chuyển đến vị trí van cô lập ngõ 18 Hoàng Đạo Thúy trên GIS...'); }}
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                          >
+                            Định vị trên GIS
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ fontWeight: '700', color: '#ef4444' }}>LK-2026-11-02</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>Ngã tư Lê Văn Lương - Hoàng Ngân</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Tọa độ GIS: [0, 0, 180] - DMA THNC-03</div>
+                        </td>
+                        <td>Ống thép hàn D200 (lắp đặt 2008)</td>
+                        <td>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: '#ef4444' }}>920 Hz / 52 dB</span>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: '700', color: '#ef4444' }}>88%</span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>~18.2 m³/h</td>
+                        <td>
+                          <button
+                            className="btn-sm btn-primary"
+                            onClick={() => { setActiveTab('gis'); showToast('Đang chuyển đến vị trí tuyến D200 Lê Văn Lương trên GIS...'); }}
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                          >
+                            Định vị trên GIS
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ fontWeight: '700', color: '#f59e0b' }}>LK-2026-11-03</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>Hố van điều áp PRV Nam Trung Yên (gần B10A)</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>Tọa độ GIS: [-440, 0, -950]</div>
+                        </td>
+                        <td>Hố van bypass DN200</td>
+                        <td>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: '#64748b' }}>620 Hz / 38 dB</span>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: '700', color: '#f59e0b' }}>76%</span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>~6.8 m³/h</td>
+                        <td>
+                          <span className="metric-badge badge-warning">Theo dõi MNF đêm</span>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -2066,26 +2629,31 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: WATER QUALITY (CHẤT LƯỢNG NƯỚC) */}
+          {/* TAB 5: WATER QUALITY (CHẤT LƯỢNG NƯỚC - TIÊU CHUẨN QCVN 01-1:2018/BYT) */}
           {activeTab === 'quality' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* 4 Primary Health Criteria Cards */}
               <div className="metrics-grid">
                 <div className="metric-card">
                   <div className="metric-header">
                     <span>Độ đục (Turbidity)</span>
-                    <Droplets size={18} color="#0284c7" />
+                    <div className="metric-icon-wrap" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                      <Droplets size={18} />
+                    </div>
                   </div>
                   <div className="metric-body">
-                    <span className="metric-value">0.85</span>
+                    <span className="metric-value">0.82</span>
                     <span className="metric-unit">NTU</span>
                   </div>
-                  <span className="metric-badge badge-success">Chuẩn QCVN (&lt; 2.0 NTU)</span>
+                  <span className="metric-badge badge-success">Chuẩn QCVN (&lt; 2.0 NTU) - Rất trong</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Clo dư (Chlorine)</span>
-                    <CheckCircle2 size={18} color="#10b981" />
+                    <span>Clo dư tự do (Residual Cl₂)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#ecfdf5', color: '#10b981' }}>
+                      <CheckCircle2 size={18} />
+                    </div>
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">0.42</span>
@@ -2096,35 +2664,173 @@ export default function App() {
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Độ pH</span>
-                    <Activity size={18} color="#0284c7" />
+                    <span>Độ kiềm & Axit (pH)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                      <Activity size={18} />
+                    </div>
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">7.35</span>
                   </div>
-                  <span className="metric-badge badge-info">Chuẩn (6.5 - 8.5)</span>
+                  <span className="metric-badge badge-info">Trung tính tối ưu (6.5 - 8.5)</span>
                 </div>
 
                 <div className="metric-card">
                   <div className="metric-header">
-                    <span>Chất rắn tan (TDS)</span>
-                    <Gauge size={18} color="#64748b" />
+                    <span>Chất rắn hòa tan (TDS)</span>
+                    <div className="metric-icon-wrap" style={{ background: '#f8fafc', color: '#475569' }}>
+                      <Gauge size={18} />
+                    </div>
                   </div>
                   <div className="metric-body">
                     <span className="metric-value">128</span>
                     <span className="metric-unit">ppm</span>
                   </div>
-                  <span className="metric-badge badge-success">An toàn (&lt; 1000 ppm)</span>
+                  <span className="metric-badge badge-success">Khoáng chất an toàn (&lt; 1000 ppm)</span>
                 </div>
               </div>
 
-              <div className="panel-card" style={{ padding: '20px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px' }}>
-                  Quan trắc chất lượng định kỳ
-                </h3>
-                <p style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.6' }}>
-                  Cảm biến đa chỉ tiêu tại trạm tổng và 3 DMA. Chu kỳ đo 15 phút/lần, tự xả cặn khi độ đục &gt; 2.5 NTU.
-                </p>
+              {/* 2 Secondary Bio-safety Indicators */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                <div className="panel-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>Chỉ Số Vi Sinh (E.Coli / Coliform)</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#047857' }}>0 CFU / 100ml</div>
+                    <div style={{ fontSize: '11px', color: '#10b981' }}>Âm tính tuyệt đối - Đạt chuẩn Bộ Y Tế</div>
+                  </div>
+                </div>
+
+                <div className="panel-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                    <Activity size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>Độ Dẫn Điện Nước (Conductivity EC)</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#1e40af' }}>245 µS/cm</div>
+                    <div style={{ fontSize: '11px', color: '#2563eb' }}>Độ tinh khiết khoáng tự nhiên</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Online Water Quality Monitoring Stations on GIS */}
+              <div className="panel-card">
+                <div className="panel-card-header">
+                  <div>
+                    <div className="panel-card-title">
+                      <Droplets size={18} color="#0284c7" />
+                      <span>Trạm Quan Trắc Chất Lượng Nước Trực Tuyến (Online WQ Stations)</span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Giám sát tự động 15 phút/lần tại các nút giao truyền tải trọng yếu trên Mạng GIS
+                    </span>
+                  </div>
+                  <button
+                    className="btn-sm btn-primary"
+                    onClick={() => handleExportCSV('Bao_Cao_Chat_Luong_Nuoc_WQ_GIS.csv')}
+                  >
+                    Xuất Báo Cáo
+                  </button>
+                </div>
+
+                <div className="data-table-wrapper">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Mã Trạm Quan Trắc</th>
+                        <th>Vị Trí Mạng Lưới GIS</th>
+                        <th>Độ Đục (NTU)</th>
+                        <th>Clo Dư (mg/L)</th>
+                        <th>Độ pH</th>
+                        <th>TDS (ppm)</th>
+                        <th>Nhiệt Độ (°C)</th>
+                        <th>Tần Suất Đo</th>
+                        <th>Đánh Giá QCVN</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { id: 'WQ-SD-01', name: 'Trạm Tiếp Nhận Nguồn Sông Đà', loc: 'Đại lộ Thăng Long (Km4)', turb: '0.45', cl: '0.78', ph: '7.42', tds: '115', temp: '24.2', freq: '5 phút/lần', status: 'Rất tốt (Đầu nguồn)', tag: 'badge-success' },
+                        { id: 'WQ-MT-02', name: 'Bể Điều Hòa Mễ Trì (12.000 m³)', loc: 'Cụm Keangnam Landmark 72', turb: '0.58', cl: '0.58', ph: '7.38', tds: '122', temp: '24.5', freq: '10 phút/lần', status: 'Tối ưu', tag: 'badge-success' },
+                        { id: 'WQ-THNC-03', name: 'Nút Mandarin Garden & 34T', loc: 'Trục Hoàng Đạo Thúy - THNC', turb: '0.75', cl: '0.45', ph: '7.34', tds: '128', temp: '24.8', freq: '15 phút/lần', status: 'Đạt chuẩn', tag: 'badge-success' },
+                        { id: 'WQ-NTY-04', name: 'Cụm Cư Dân Nam Trung Yên', loc: 'Chung cư B10A & PVI Tower', turb: '0.85', cl: '0.38', ph: '7.30', tds: '132', temp: '24.9', freq: '15 phút/lần', status: 'Đạt chuẩn', tag: 'badge-success' },
+                        { id: 'WQ-CG-05', name: 'Khu Công Nghệ Duy Tân', loc: 'FPT Tower & Viettel Cầu Giấy', turb: '0.68', cl: '0.40', ph: '7.32', tds: '125', temp: '24.6', freq: '15 phút/lần', status: 'Đạt chuẩn', tag: 'badge-success' },
+                        { id: 'WQ-TK-06', name: 'Điểm Đo Cuối Mạng Triều Khúc', loc: 'Nút bất lợi Triều Khúc - Thanh Xuân', turb: '1.15', cl: '0.24', ph: '7.18', tds: '145', temp: '25.1', freq: '15 phút/lần', status: 'Cận ngưỡng Clo (0.24)', tag: 'badge-warning' },
+                      ].map((row, idx) => (
+                        <tr key={idx}>
+                          <td>
+                            <div style={{ fontWeight: '700', color: '#0f172a' }}>{row.id}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>{row.name}</div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                              <MapPin size={13} color="#0284c7" />
+                              <span>{row.loc}</span>
+                            </div>
+                          </td>
+                          <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0284c7' }}>{row.turb}</td>
+                          <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: parseFloat(row.cl) < 0.25 ? '#d97706' : '#10b981' }}>{row.cl}</td>
+                          <td style={{ fontFamily: 'var(--font-mono)' }}>{row.ph}</td>
+                          <td style={{ fontFamily: 'var(--font-mono)', color: '#64748b' }}>{row.tds}</td>
+                          <td style={{ fontFamily: 'var(--font-mono)', color: '#64748b' }}>{row.temp}°C</td>
+                          <td style={{ fontSize: '12px', color: '#64748b' }}>{row.freq}</td>
+                          <td>
+                            <span className={`metric-badge ${row.tag}`}>{row.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Chlorine Residual Curve & Flushing Protocol */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+                <div className="panel-card" style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Activity size={17} color="#0284c7" />
+                    <span>Đường Suy Giảm Nồng Độ Clo Dư Theo Chiều Dài Mạng Lưới</span>
+                  </h3>
+                  <p style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.6', marginBottom: '14px' }}>
+                    Giám sát nồng độ Clo dư tự do từ Trạm tiếp nhận Sông Đà (0 km: 0.78 mg/L) truyền qua 8.5 km đường ống đến điểm cuối Triều Khúc (0.24 mg/L) nhằm duy trì khả năng khử khuẩn và ngăn ngừa rủi ro tái nhiễm sinh học.
+                  </p>
+                  
+                  {/* Visual Chlorine Gradient Bar */}
+                  <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', marginBottom: '6px', fontWeight: 600 }}>
+                      <span style={{ color: '#047857' }}>Đầu Nguồn (0.78 mg/L)</span>
+                      <span style={{ color: '#0284c7' }}>Trung Tâm THNC (0.45 mg/L)</span>
+                      <span style={{ color: '#d97706' }}>Cuối Mạng Triều Khúc (0.24 mg/L)</span>
+                    </div>
+                    <div style={{ height: '10px', borderRadius: '5px', background: 'linear-gradient(to right, #10b981 0%, #38bdf8 55%, #f59e0b 100%)', width: '100%' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
+                      <span>Km 0.0 (Sông Đà)</span>
+                      <span>Km 4.2 (34T HDT)</span>
+                      <span>Km 8.5 (Triều Khúc)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="panel-card" style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <RefreshCw size={17} color="#10b981" />
+                    <span>Hệ Thống Súc Xả Tự Động (Auto-Flushing Units)</span>
+                  </h3>
+                  <p style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.6', marginBottom: '14px' }}>
+                    Tự động kích hoạt van xả cặn khi cảm biến phát hiện độ đục vượt ngưỡng &gt; 1.8 NTU hoặc khi nồng độ Clo dư tại điểm cụt giảm xuống &lt; 0.20 mg/L sau 48h lưu chuyển chậm.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span className="metric-badge badge-success">
+                      <CheckCircle2 size={13} />
+                      <span>3 Trạm súc xả tự động sẵn sàng</span>
+                    </span>
+                    <span className="metric-badge badge-info">
+                      <span>Lần xả gần nhất: 03:15 sáng qua</span>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -2214,139 +2920,4 @@ export default function App() {
       )}
     </div>
   );
-                {/* Floating Modern Clean HUD Controls (Top Left) */}
-                <div style={{
-                  position: 'absolute',
-                  top: '14px',
-                  left: '14px',
-                  zIndex: 25,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  maxWidth: 'calc(100% - 220px)',
-                  pointerEvents: 'auto'
-                }}>
-                  {/* Primary Controls Row */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-                    {/* Theme Mode Toggle */}
-                    <div className="qatium-hud-pill-group">
-                      <button
-                        className={`qatium-hud-btn ${gisTheme === 'dark' ? 'active' : ''}`}
-                        onClick={() => setGisTheme('dark')}
-                      >
-                        <span>Digital Twin (Tối)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisTheme === 'light' ? 'active' : ''}`}
-                        onClick={() => setGisTheme('light')}
-                      >
-                        <span>SCADA (Sáng)</span>
-                      </button>
-                    </div>
-
-                    {/* Heatmap Mode Toggle */}
-                    <div className="qatium-hud-pill-group">
-                      <button
-                        className={`qatium-hud-btn ${gisHeatmap === 'pressure' ? 'active' : ''}`}
-                        onClick={() => setGisHeatmap('pressure')}
-                      >
-                        <Gauge size={13} />
-                        <span>Áp lực (bar)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisHeatmap === 'flow' ? 'active' : ''}`}
-                        onClick={() => setGisHeatmap('flow')}
-                      >
-                        <Droplets size={13} />
-                        <span>Lưu lượng (m³/h)</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Filter Pills Row matching Screenshot 2026-11-17 192919.png */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-                    <div className="qatium-hud-pill-group">
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.pipesPrimary ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, pipesPrimary: !p.pipesPrimary }))}
-                      >
-                        <span>Cấp 1 (D500)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.pipesSecondary ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, pipesSecondary: !p.pipesSecondary }))}
-                      >
-                        <span>Cấp 2 (D200)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.pipesService ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, pipesService: !p.pipesService }))}
-                      >
-                        <span>Cấp 3 (Đấu Nối)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.buildings ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, buildings: !p.buildings }))}
-                      >
-                        <span>Khối Nhà 3D</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.hydrants ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, hydrants: !p.hydrants }))}
-                        style={{ color: '#ef4444' }}
-                      >
-                        <Flame size={12} color="#ef4444" style={{ marginRight: '3px' }} />
-                        <span>Trụ PCCC (38)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.streetLabels ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, streetLabels: !p.streetLabels }))}
-                      >
-                        <Tag size={12} style={{ marginRight: '3px' }} />
-                        <span>Tên Đường (Maps)</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.valves ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, valves: !p.valves }))}
-                      >
-                        <span>Van PRV</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.tanks ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, tanks: !p.tanks }))}
-                      >
-                        <span>Đài nước & Bơm</span>
-                      </button>
-                      <button
-                        className={`qatium-hud-btn ${gisAssetsLayer.sensors ? 'active' : ''}`}
-                        onClick={() => setGisAssetsLayer(p => ({ ...p, sensors: !p.sensors }))}
-                      >
-                        <span>Cảm biến</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Valve Status Chip (Screenshot Row 3) */}
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div
-                      className="qatium-hud-pill-group"
-                      style={{
-                        padding: '4px 10px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => handleToggleValve('VALVE-08')}
-                      title="Click để mô phỏng đóng/mở chốt van VALVE-08"
-                    >
-                      <span style={{ color: closedValves['VALVE-08'] ? '#ef4444' : '#10b981', fontSize: '13px' }}>●</span>
-                      <span>VALVE-08: {closedValves['VALVE-08'] ? 'ĐÃ ĐÓNG' : 'MỞ'}</span>
-                      <span style={{ fontSize: '11px' }}>{closedValves['VALVE-08'] ? '🔒' : '🔓'}</span>
-                    </div>
-                  </div>
-                </div>
-
 }
