@@ -46,7 +46,7 @@ export default function Network3DViewer({
     if (!container) return;
 
     const width = container.clientWidth || 900;
-    const height = container.clientHeight || 560;
+    const height = container.clientHeight || (compact ? 440 : Math.max(760, window.innerHeight - 65));
     const isDark = theme === 'dark';
     const isXRay = viewMode === 'xray';
     const is2D = viewMode === '2d';
@@ -231,6 +231,16 @@ export default function Network3DViewer({
     createRoad(0, -220, 18, 1800, false, 'Đường Mạc Thái Tông', false);
     createRoad(-200, -460, 24, 2000, false, 'Đường Mễ Trì', true);
     createRoad(-200, -540, 26, 2000, false, 'Đường Dương Đình Nghệ', true);
+    // --- TRỤC ĐƯỜNG VÀNH ĐAI NGOẠI VI (OUTER RING ARTERIALS & COLLECTORS) ---
+    createRoad(0, 720, 32, 2500, false, 'Đường Nguyễn Trãi (Trục Chính Đông Nam)', true);
+    createRoad(-780, 200, 26, 1200, false, 'Đường Tố Hữu (Lê Văn Lương kéo dài)', true);
+    createRoad(-780, 70, 24, 1200, false, 'Đường Đỗ Đức Dục - Miếu Đầm', true);
+    createRoad(-850, 0, 26, 2000, true, 'Đường Sa Đôi - Lê Quang Đạo', true);
+    createRoad(620, 0, 22, 2200, true, 'Trục Phố Khương Đình - Thượng Đình', true);
+    createRoad(0, 560, 20, 2200, false, 'Phố Triều Khúc - Lương Thế Vinh', false);
+    createRoad(200, -780, 24, 2000, false, 'Đường Tôn Thất Thuyết / Trần Thái Tông', true);
+    createRoad(-440, 0, 36, 2500, true, 'Vành Đai 3 - Cầu Cạn Phạm Hùng', false);
+
 
     // =========================================================================
     // 8. GOOGLE MAPS STYLE STREET LABELS (SPRITE PILL BADGES)
@@ -1908,7 +1918,443 @@ export default function Network3DViewer({
       dma: 'DMA Thanh Xuân'
     });
 
-        // =========================================================================
+        
+    // =========================================================================
+    // 10B. DENSE OUTER RING EXPANSION (R = 500m -> 1,240m BOUNDARY FILL)
+    // =========================================================================
+    // --- KHU VỰC PHÍA TÂY & TÂY BẮC (MỸ ĐÌNH, MỄ TRÌ, THE MANOR, JW MARRIOTT) ---
+    create3DBuilding({
+      pos: [-800, 0, 90],
+      size: [78, 48, 65],
+      color: isDark ? 0x0284c7 : 0x0369a1,
+      name: 'Khách Sạn JW Marriott Hotel Hanoi (Biểu Tượng Rồng Bên Hồ)',
+      id: 'BLDG-JW-MARRIOTT',
+      floors: 9,
+      households: '450 phòng 5 sao quốc tế & Trung tâm hội nghị',
+      demandFlow: '48.0 m³/h',
+      intakePressure: '3.45 bar',
+      connectionPipe: 'DN125 Gang dẻo',
+      cisternCapacity: '2,200 m³',
+      meterId: 'AMR-MARRIOTT-01',
+      dma: 'DMA Mễ Trì',
+      hasAntenna: true
+    });
+
+    // Cụm Vinhomes West Point (3 tháp W1, W2, W3 cao 35-39 tầng)
+    [
+      { pos: [-680, 0, 30], size: [32, 105, 30], name: 'Vinhomes West Point - Tháp W1 (39T)', id: 'BLDG-WP-1', floors: 39 },
+      { pos: [-620, 0, 70], size: [34, 112, 32], name: 'Vinhomes West Point - Tháp W2 (39T)', id: 'BLDG-WP-2', floors: 39 },
+      { pos: [-720, 0, 70], size: [32, 98, 30], name: 'Vinhomes West Point - Tháp W3 (35T)', id: 'BLDG-WP-3', floors: 35 }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: b.floors,
+        households: '580 căn hộ cao cấp',
+        demandFlow: '42.0 m³/h',
+        intakePressure: '3.38 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,500 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Mễ Trì Hạ',
+        hasAntenna: true
+      });
+    });
+
+    // Cụm The Manor Mỹ Đình & Sudico
+    [
+      { pos: [-860, 0, -220], size: [42, 92, 42], name: 'Tổ Hợp The Manor Mỹ Đình - Tháp Paris (26T)', id: 'BLDG-MANOR-PARIS' },
+      { pos: [-920, 0, -180], size: [40, 88, 40], name: 'Tổ Hợp The Manor Mỹ Đình - Tháp Rome (26T)', id: 'BLDG-MANOR-ROME' },
+      { pos: [-820, 0, -170], size: [38, 85, 38], name: 'Tổ Hợp Căn Hộ Sudico Mễ Trì (25T)', id: 'BLDG-SUDICO-1' },
+      { pos: [-920, 0, -320], size: [44, 95, 40], name: 'Tổ Hợp The Emerald Mỹ Đình (30T)', id: 'BLDG-EMERALD' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0369a1 : 0x0284c7,
+        name: b.name,
+        id: b.id,
+        floors: 26,
+        households: '480 căn hộ',
+        demandFlow: '36.0 m³/h',
+        intakePressure: '3.42 bar',
+        connectionPipe: 'DN100 HDPE',
+        cisternCapacity: '1,400 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Mỹ Đình'
+      });
+    });
+
+    // Cụm Golden Palace Mễ Trì (3 tháp hoa sen)
+    [
+      { pos: [-980, 0, 40], id: 'BLDG-GP-A', name: 'Golden Palace Mễ Trì - Tháp A (30T)' },
+      { pos: [-1040, 0, 80], id: 'BLDG-GP-B', name: 'Golden Palace Mễ Trì - Tháp B (30T)' },
+      { pos: [-980, 0, 120], id: 'BLDG-GP-C', name: 'Golden Palace Mễ Trì - Tháp C (30T)' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: [36, 95, 36],
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 30,
+        households: '520 căn hộ',
+        demandFlow: '38.0 m³/h',
+        intakePressure: '3.40 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,600 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Mễ Trì'
+      });
+    });
+
+    // Shophouses Phía Tây
+    [
+      { center: [-700, -140], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Đồng Me - Mễ Trì Hạ' },
+      { center: [-760, -260], size: [110, 60], rows: 2, cols: 7, name: 'Khu Shophouse Mễ Trì Thượng' },
+      { center: [-840, -80], size: [110, 60], rows: 2, cols: 7, name: 'Khu Liền Kề Sa Đôi' },
+      { center: [-940, -60], size: [110, 60], rows: 2, cols: 7, name: 'KDC Phố Cương Kiên' },
+      { center: [-660, 180], size: [100, 60], rows: 2, cols: 7, name: 'KDC Phố Đỗ Đức Dục' },
+      { center: [-840, 220], size: [120, 60], rows: 2, cols: 8, name: 'Khu Biệt Thự Mễ Trì Viên' }
+    ].forEach((sh, idx) => {
+      createDenseShophouseBlock({
+        center: sh.center,
+        size: sh.size,
+        rows: sh.rows,
+        cols: sh.cols,
+        heightRange: [14, 21],
+        zoneId: `WEST-SH-${idx + 1}`,
+        blockName: sh.name,
+        dma: 'DMA Mễ Trì - Mỹ Đình'
+      });
+    });
+
+    // --- KHU VỰC PHÍA BẮC & ĐÔNG BẮC (NAM TRUNG YÊN, CẦU GIẤY, YÊN HÒA) ---
+    // Cụm Cao Ốc Nam Trung Yên (B10, B11, A10, A14)
+    [
+      { pos: [-180, 0, -480], size: [30, 88, 28], name: 'Chung Cư Nam Trung Yên B10A (30T)', id: 'BLDG-NTY-B10A' },
+      { pos: [-120, 0, -520], size: [30, 88, 28], name: 'Chung Cư Nam Trung Yên B10B (30T)', id: 'BLDG-NTY-B10B' },
+      { pos: [-60, 0, -580], size: [32, 92, 30], name: 'Chung Cư Nam Trung Yên B11A (32T)', id: 'BLDG-NTY-B11A' },
+      { pos: [40, 0, -540], size: [32, 92, 30], name: 'Chung Cư Nam Trung Yên B11B (32T)', id: 'BLDG-NTY-B11B' },
+      { pos: [120, 0, -600], size: [34, 105, 32], name: 'Tổ Hợp Căn Hộ Cao Cấp A10 Nam Trung Yên (37T)', id: 'BLDG-NTY-A10' },
+      { pos: [180, 0, -520], size: [34, 105, 32], name: 'Tổ Hợp Căn Hộ Cao Cấp A14 Nam Trung Yên (37T)', id: 'BLDG-NTY-A14' },
+      { pos: [-100, 0, -680], size: [38, 92, 38], name: 'Tòa Tháp Tài Chính PVI Tower (26 Tầng)', id: 'BLDG-PVI' },
+      { pos: [60, 0, -720], size: [36, 128, 36], name: 'Tổ Hợp Golden Park Tower Cầu Giấy (45 Tầng)', id: 'BLDG-GOLDEN-PARK' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 32,
+        households: '460 căn hộ & văn phòng',
+        demandFlow: '38.0 m³/h',
+        intakePressure: '3.32 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,500 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Nam Trung Yên',
+        hasAntenna: true
+      });
+    });
+
+    // Cụm Home City & Chelsea Park Yên Hòa
+    [
+      { pos: [320, 0, -460], size: [32, 95, 30], name: 'Tổ Hợp Home City Trung Kính - Tháp V1 (30T)', id: 'BLDG-HC-1' },
+      { pos: [380, 0, -520], size: [32, 95, 30], name: 'Tổ Hợp Home City Trung Kính - Tháp V2 (30T)', id: 'BLDG-HC-2' },
+      { pos: [440, 0, -480], size: [34, 98, 32], name: 'Tổ Hợp Central Field 219 Trung Kính (29T)', id: 'BLDG-CENTRAL-FIELD' },
+      { pos: [260, 0, -650], size: [32, 82, 28], name: 'Tổ Hợp Chelsea Park Yên Hòa - Tháp Bắc (25T)', id: 'BLDG-CHELSEA-N' },
+      { pos: [320, 0, -650], size: [32, 82, 28], name: 'Tổ Hợp Chelsea Park Yên Hòa - Tháp Nam (25T)', id: 'BLDG-CHELSEA-S' },
+      { pos: [200, 0, -880], size: [38, 105, 36], name: 'Discovery Central Dịch Vọng Hậu (35T)', id: 'BLDG-DISCOVERY-DVH' },
+      { pos: [300, 0, -920], size: [36, 98, 36], name: 'Tháp Văn Phòng CMC Tower Duy Tân (28T)', id: 'BLDG-CMC-TOWER' },
+      { pos: [420, 0, -850], size: [34, 92, 32], name: 'Tòa Nhà FPT Tower Cầu Giấy (25T)', id: 'BLDG-FPT-TOWER' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0369a1 : 0x0284c7,
+        name: b.name,
+        id: b.id,
+        floors: 28,
+        households: '420 căn hộ & văn phòng',
+        demandFlow: '34.0 m³/h',
+        intakePressure: '3.28 bar',
+        connectionPipe: 'DN100 HDPE',
+        cisternCapacity: '1,300 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Cầu Giấy'
+      });
+    });
+
+    // Shophouses Phía Bắc
+    [
+      { center: [220, -400], size: [110, 60], rows: 2, cols: 8, name: 'KDC Phố Hạ Yên - Mạc Thái Tổ' },
+      { center: [120, -420], size: [110, 60], rows: 2, cols: 7, name: 'Khu Shophouse Nam Trung Yên' },
+      { center: [-100, -380], size: [120, 60], rows: 2, cols: 8, name: 'Khu Dân Cư Phố Nguyễn Chánh' },
+      { center: [340, -380], size: [110, 60], rows: 2, cols: 7, name: 'Khu Shophouse Trung Kính Bắc' },
+      { center: [220, -540], size: [110, 60], rows: 2, cols: 7, name: 'KDC Phố Yên Hòa Mở Rộng' },
+      { center: [360, -600], size: [120, 60], rows: 2, cols: 8, name: 'Khu Liền Kề Cầu Giấy' },
+      { center: [180, -750], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Trần Thái Tông' },
+      { center: [340, -800], size: [120, 60], rows: 2, cols: 8, name: 'Khu Phân Lô Phố Duy Tân' }
+    ].forEach((sh, idx) => {
+      createDenseShophouseBlock({
+        center: sh.center,
+        size: sh.size,
+        rows: sh.rows,
+        cols: sh.cols,
+        heightRange: [14, 22],
+        zoneId: `NORTH-SH-${idx + 1}`,
+        blockName: sh.name,
+        dma: 'DMA Nam Trung Yên'
+      });
+    });
+
+    // --- KHU VỰC PHÍA ĐÔNG & ĐÔNG NAM (THANH XUÂN, LÁNG HẠ, NGUYỄN TUÂN, ROYAL CITY MỞ RỘNG) ---
+    // Mở Rộng Vinhomes Royal City (Tháp R3, R4, R5, R6 35T)
+    [
+      { pos: [840, 0, 480], size: [44, 115, 44], name: 'Vinhomes Royal City - Tháp R3 (35T)', id: 'BLDG-ROYAL-R3' },
+      { pos: [840, 0, 560], size: [44, 115, 44], name: 'Vinhomes Royal City - Tháp R4 (35T)', id: 'BLDG-ROYAL-R4' },
+      { pos: [920, 0, 520], size: [42, 115, 42], name: 'Vinhomes Royal City - Tháp R5 (35T)', id: 'BLDG-ROYAL-R5' },
+      { pos: [980, 0, 560], size: [42, 115, 42], name: 'Vinhomes Royal City - Tháp R6 (35T)', id: 'BLDG-ROYAL-R6' },
+      { pos: [680, 0, 760], size: [38, 118, 38], name: 'Tổ Hợp King Palace 108 Nguyễn Trãi (36T)', id: 'BLDG-KING-PALACE' },
+      { pos: [480, 0, 320], size: [32, 80, 30], name: 'Rivera Park 69 Vũ Trọng Phụng - Tháp A (24T)', id: 'BLDG-RIVERA-A' },
+      { pos: [540, 0, 320], size: [32, 80, 30], name: 'Rivera Park 69 Vũ Trọng Phụng - Tháp B (24T)', id: 'BLDG-RIVERA-B' },
+      { pos: [460, 0, 120], size: [36, 118, 36], name: 'Tòa Tháp Diamond Flower Tower (36T - Lê Văn Lương)', id: 'BLDG-DIAMOND-FLOWER' },
+      { pos: [540, 0, 140], size: [32, 95, 32], name: 'Tổ Hợp BRG Grand Plaza Láng Hạ (28T)', id: 'BLDG-BRG-LANG-HA' },
+      { pos: [620, 0, 180], size: [34, 102, 34], name: 'Tòa Tháp Sky City Towers 88 Láng Hạ (31T)', id: 'BLDG-SKY-CITY' },
+      { pos: [460, 0, 220], size: [32, 92, 30], name: 'Tổ Hợp Căn Hộ Bohemia Residence (33T)', id: 'BLDG-BOHEMIA' },
+      { pos: [520, 0, 220], size: [32, 92, 30], name: 'Tổ Hợp Golden West Lê Văn Thiêm (27T)', id: 'BLDG-GOLDEN-WEST' },
+      { pos: [460, 0, 420], size: [34, 98, 32], name: 'Hapulico Complex Giai Đoạn 2 - Tháp 24T3', id: 'BLDG-HAPU-24T3' },
+      { pos: [520, 0, 420], size: [34, 98, 32], name: 'Hapulico Complex Giai Đoạn 2 - Tháp 24T4', id: 'BLDG-HAPU-24T4' },
+      { pos: [580, 0, 380], size: [32, 92, 30], name: 'Khu Chung Cư Thống Nhất Complex 82 Nguyễn Tuân (25T)', id: 'BLDG-THONG-NHAT' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 30,
+        households: '500 căn hộ cao cấp',
+        demandFlow: '40.0 m³/h',
+        intakePressure: '3.20 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,500 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Thanh Xuân',
+        hasAntenna: true
+      });
+    });
+
+    // Shophouses Phía Đông & Đông Nam
+    [
+      { center: [640, 80], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Láng Hạ Mở Rộng' },
+      { center: [740, 120], size: [120, 60], rows: 2, cols: 8, name: 'Khu Shophouse Giảng Võ - Láng Hạ' },
+      { center: [840, 180], size: [130, 60], rows: 2, cols: 9, name: 'KDC Phố Thái Hà Cửa Ngõ' },
+      { center: [640, 320], size: [120, 60], rows: 2, cols: 8, name: 'Khu Shophouse Phố Nguyễn Tuân' },
+      { center: [740, 360], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Vũ Trọng Phụng Nối Dài' },
+      { center: [840, 420], size: [120, 60], rows: 2, cols: 8, name: 'Khu Dân Cư Phố Khương Đình 1' },
+      { center: [660, 600], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Thượng Đình Cửa Ngõ' },
+      { center: [780, 720], size: [130, 60], rows: 2, cols: 9, name: 'Khu Nhà Phố Liền Kề Nguyễn Trãi' }
+    ].forEach((sh, idx) => {
+      createDenseShophouseBlock({
+        center: sh.center,
+        size: sh.size,
+        rows: sh.rows,
+        cols: sh.cols,
+        heightRange: [15, 22],
+        zoneId: `EAST-SH-${idx + 1}`,
+        blockName: sh.name,
+        dma: 'DMA Thanh Xuân'
+      });
+    });
+
+    
+    // --- BỔ SUNG CÔNG TRÌNH VIỀN NGOÀI CÙNG LẤP ĐẦY KHUNG TRÒN R = 800 - 1,240M ---
+    // Sector 1: Tây Bắc (Mỹ Đình - Cương Kiên - Sa Đôi)
+    [
+      { pos: [-1050, 0, -220], size: [38, 95, 38], name: 'Tổ Hợp Tháp Văn Phòng Mỹ Đình 1 (30T)', id: 'BLDG-MD1-A' },
+      { pos: [-1120, 0, -160], size: [36, 88, 36], name: 'Tòa Tháp Căn Hộ Cương Kiên (28T)', id: 'BLDG-CK-28' },
+      { pos: [-1050, 0, -380], size: [40, 92, 40], name: 'Chung Cư An Lạc Phùng Khoang Mở Rộng', id: 'BLDG-ANLAC' },
+      { pos: [-750, 0, -480], size: [38, 90, 36], name: 'Tổ Hợp Florence Mỹ Đình (25T)', id: 'BLDG-FLORENCE' },
+      { pos: [-880, 0, -480], size: [36, 86, 36], name: 'Chung Cư Iris Garden Mỹ Đình (25T)', id: 'BLDG-IRIS' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 28,
+        households: '420 căn hộ',
+        demandFlow: '32.0 m³/h',
+        intakePressure: '3.35 bar',
+        connectionPipe: 'DN100 HDPE',
+        cisternCapacity: '1,200 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Mỹ Đình'
+      });
+    });
+
+    // Sector 2: Đông Bắc (Dịch Vọng Hậu - Cầu Giấy Ngoại Vi)
+    [
+      { pos: [520, 0, -680], size: [36, 95, 36], name: 'Tòa Tháp Viễn Thông Mobifone Duy Tân (28T)', id: 'BLDG-MOBIFONE' },
+      { pos: [620, 0, -620], size: [34, 88, 34], name: 'Tổ Hợp Dịch Vọng Hậu Plaza (26T)', id: 'BLDG-DVH-PLAZA' },
+      { pos: [720, 0, -560], size: [38, 92, 38], name: 'Tòa Tháp Căn Hộ Park View Yên Hòa (29T)', id: 'BLDG-PARKVIEW' },
+      { pos: [820, 0, -480], size: [36, 88, 36], name: 'Tổ Hợp Thăng Long Number Two (27T)', id: 'BLDG-TL-NO2' },
+      { pos: [920, 0, -420], size: [36, 88, 36], name: 'Cụm Tòa Nhà Đường Láng Ngoại Vi (26T)', id: 'BLDG-LANG-EXT' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0369a1 : 0x0284c7,
+        name: b.name,
+        id: b.id,
+        floors: 27,
+        households: '390 căn hộ',
+        demandFlow: '30.0 m³/h',
+        intakePressure: '3.25 bar',
+        connectionPipe: 'DN100 HDPE',
+        cisternCapacity: '1,100 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Cầu Giấy'
+      });
+    });
+
+    // Sector 3: Đông Nam (Thượng Đình - Khương Đình - Kim Giang)
+    [
+      { pos: [1050, 0, 480], size: [42, 105, 42], name: 'Tổ Hợp Căn Hộ Cao Cấp Sông Tô Lịch (32T)', id: 'BLDG-TOLICH-1' },
+      { pos: [1120, 0, 560], size: [40, 98, 40], name: 'Chung Cư Khương Đình Riverside (30T)', id: 'BLDG-KHUONGDINH-R' },
+      { pos: [1020, 0, 680], size: [38, 92, 38], name: 'Tòa Tháp Kim Giang Complex (28T)', id: 'BLDG-KIMG-1' },
+      { pos: [920, 0, 820], size: [36, 88, 36], name: 'Tổ Hợp Đô Thị Mới Đại Kim Cửa Ngõ (26T)', id: 'BLDG-DAIKIM' },
+      { pos: [800, 0, 920], size: [38, 92, 38], name: 'Tòa Nhà Hạ Đình Plaza (28T)', id: 'BLDG-HADINH' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 28,
+        households: '440 căn hộ',
+        demandFlow: '35.0 m³/h',
+        intakePressure: '3.18 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,300 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Thượng Đình'
+      });
+    });
+
+    // Sector 4: Nam & Tây Nam (Mỗ Lao - Phùng Khoang Mở Rộng)
+    [
+      { pos: [-780, 0, 620], size: [38, 102, 38], name: 'Tổ Hợp Tháp Doanh Nhân Mỗ Lao (36T)', id: 'BLDG-MOLAO-DN' },
+      { pos: [-860, 0, 720], size: [36, 95, 36], name: 'Khu Đô Thị Mỗ Lao Tháp A (32T)', id: 'BLDG-MOLAO-A' },
+      { pos: [-920, 0, 800], size: [36, 95, 36], name: 'Khu Đô Thị Mỗ Lao Tháp B (32T)', id: 'BLDG-MOLAO-B' },
+      { pos: [-720, 0, 920], size: [36, 90, 36], name: 'Chung Cư Hồ Gươm Plaza Hà Đông (29T)', id: 'BLDG-HOGUOM-PZ' },
+      { pos: [-520, 0, 980], size: [36, 88, 36], name: 'Tổ Hợp Grand SunLake Văn Quán Cửa Ngõ', id: 'BLDG-SUNLAKE' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 30,
+        households: '480 căn hộ',
+        demandFlow: '38.0 m³/h',
+        intakePressure: '3.22 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,450 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Mỗ Lao - Hà Đông'
+      });
+    });
+
+    // Bổ sung 8 Block Shophouse viền ngoài cùng
+    [
+      { center: [-1000, -280], size: [130, 60], rows: 2, cols: 9, name: 'KDC Phố Sa Đôi Ngoại Vi' },
+      { center: [-900, -420], size: [120, 60], rows: 2, cols: 8, name: 'Khu Liền Kề Mỹ Đình Ngoại Vi' },
+      { center: [650, -520], size: [120, 60], rows: 2, cols: 8, name: 'Khu Shophouse Cầu Giấy Mở Rộng' },
+      { center: [850, -400], size: [130, 60], rows: 2, cols: 9, name: 'KDC Phố Đường Láng Biên Đông' },
+      { center: [1050, 420], size: [130, 60], rows: 2, cols: 9, name: 'Khu Phố Khương Đình Mở Rộng' },
+      { center: [950, 620], size: [130, 60], rows: 2, cols: 9, name: 'KDC Phố Kim Giang Cửa Ngõ' },
+      { center: [-850, 640], size: [130, 60], rows: 2, cols: 9, name: 'Khu Shophouse Làng Việt Kiều Châu Âu' },
+      { center: [-750, 840], size: [130, 60], rows: 2, cols: 9, name: 'KDC Phố Mỗ Lao Cửa Ngõ' }
+    ].forEach((sh, idx) => {
+      createDenseShophouseBlock({
+        center: sh.center,
+        size: sh.size,
+        rows: sh.rows,
+        cols: sh.cols,
+        heightRange: [14, 21],
+        zoneId: `OUTER-EXT-${idx + 1}`,
+        blockName: sh.name,
+        dma: 'DMA Vành Đai Ngoại Vi'
+      });
+    });
+
+    // --- KHU VỰC PHÍA NAM & TÂY NAM (TỐ HỮU, PHÙNG KHOANG, THANH XUÂN NAM, TRIỀU KHÚC) ---
+    [
+      { pos: [-380, 0, 540], size: [36, 112, 34], name: 'Tổ Hợp Chung Cư Ecolife Capitol (34T - Tố Hữu)', id: 'BLDG-ECOLIFE' },
+      { pos: [-450, 0, 600], size: [36, 112, 34], name: 'Tổ Hợp Roman Plaza Tố Hữu - Tháp A (32T)', id: 'BLDG-ROMAN-A' },
+      { pos: [-530, 0, 660], size: [34, 108, 34], name: 'Tổ Hợp Roman Plaza Tố Hữu - Tháp B (32T)', id: 'BLDG-ROMAN-B' },
+      { pos: [-600, 0, 780], size: [36, 115, 34], name: 'Tổ Hợp The Pride Hải Phát (35T - Tố Hữu)', id: 'BLDG-THE-PRIDE' },
+      { pos: [-660, 0, 840], size: [34, 105, 34], name: 'Tổ Hợp C14 Bắc Hà Bộ Công An (30T)', id: 'BLDG-C14-BH' },
+      { pos: [80, 0, 680], size: [32, 92, 30], name: 'Tổ Hợp Căn Hộ PCC1 Triều Khúc (27T)', id: 'BLDG-PCC1-TK' },
+      { pos: [160, 0, 720], size: [32, 92, 30], name: 'Tổ Hợp Pandora 53 Triều Khúc (27T)', id: 'BLDG-PANDORA' },
+      { pos: [240, 0, 760], size: [30, 88, 30], name: 'Chung Cư BlueGem Tower Triều Khúc (29T)', id: 'BLDG-BLUEGEM' },
+      { pos: [120, 0, 840], size: [54, 45, 54], name: 'Khu Giảng Đường Đại Học Hà Nội (HANU)', id: 'BLDG-HANU' },
+      { pos: [220, 0, 880], size: [58, 48, 58], name: 'Khuôn Viên Đại Học Kiến Trúc Hà Nội (HAU)', id: 'BLDG-HAU' },
+      { pos: [320, 0, 940], size: [52, 42, 52], name: 'Học Viện Công Nghệ Bưu Chính Viễn Thông (PTIT)', id: 'BLDG-PTIT' }
+    ].forEach(b => {
+      create3DBuilding({
+        pos: b.pos,
+        size: b.size,
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        name: b.name,
+        id: b.id,
+        floors: 30,
+        households: '450 căn hộ & Giảng đường',
+        demandFlow: '36.0 m³/h',
+        intakePressure: '3.25 bar',
+        connectionPipe: 'DN100 Gang dẻo',
+        cisternCapacity: '1,600 m³',
+        meterId: `AMR-${b.id}`,
+        dma: 'DMA Phùng Khoang',
+        hasAntenna: true
+      });
+    });
+
+    // Shophouses Phía Nam
+    [
+      { center: [-220, 520], size: [110, 60], rows: 2, cols: 7, name: 'KDC Phố Phùng Khoang Mới' },
+      { center: [-320, 620], size: [120, 60], rows: 2, cols: 8, name: 'Khu Liền Kề Hồ Mễ Trì' },
+      { center: [-160, 680], size: [110, 60], rows: 2, cols: 7, name: 'KDC Phố Lương Thế Vinh Nam' },
+      { center: [-240, 780], size: [120, 60], rows: 2, cols: 8, name: 'Khu Shophouse Cửa Ngõ Hà Đông' },
+      { center: [40, 580], size: [110, 60], rows: 2, cols: 7, name: 'KDC Làng Triều Khúc Cổ' },
+      { center: [120, 620], size: [110, 60], rows: 2, cols: 7, name: 'Khu Phân Lô Phố Triều Khúc' },
+      { center: [20, 760], size: [120, 60], rows: 2, cols: 8, name: 'KDC Phố Nguyễn Quý Đức' },
+      { center: [-80, 860], size: [120, 60], rows: 2, cols: 8, name: 'Khu Dân Cư Thanh Xuân Nam' }
+    ].forEach((sh, idx) => {
+      createDenseShophouseBlock({
+        center: sh.center,
+        size: sh.size,
+        rows: sh.rows,
+        cols: sh.cols,
+        heightRange: [14, 21],
+        zoneId: `SOUTH-SH-${idx + 1}`,
+        blockName: sh.name,
+        dma: 'DMA Thanh Xuân Nam'
+      });
+    });
+
+
+    // =========================================================================
     // 11. DENSE 4-TIER WATER PIPELINE GRID (100+ PIPE SEGMENTS ACROSS 2.5KM)
     // =========================================================================
     const pipeGroup = new THREE.Group();
@@ -1928,8 +2374,19 @@ export default function Network3DViewer({
       const dynamicColor = tier === 1 ? 0x0284c7 : (tier === 2 ? 0xf97316 : (tier === 3 ? 0xeab308 : (data?.status?.includes('CẮT') ? 0x64748b : 0xeab308)));
       const activeColor = isFlowing ? dynamicColor : 0x475569;
 
-      const curve = new THREE.CatmullRomCurve3(points);
-      const tubeGeo = new THREE.TubeGeometry(curve, 64, radius, 14, false);
+      // THỰC TẾ CẤP THOÁT NƯỚC ĐÔ THỊ: Tuyến ống đi thẳng theo vỉa hè / tim đường, chỉ bẻ góc tại ngã ba, ngã tư
+      let curve;
+      if (points.length === 2) {
+        curve = new THREE.LineCurve3(points[0], points[1]);
+      } else {
+        const path = new THREE.CurvePath();
+        for (let i = 0; i < points.length - 1; i++) {
+          path.add(new THREE.LineCurve3(points[i], points[i + 1]));
+        }
+        curve = path;
+      }
+      const segmentCount = Math.max(16, (points.length - 1) * 16);
+      const tubeGeo = new THREE.TubeGeometry(curve, segmentCount, radius, 12, false);
       const tubeMat = new THREE.MeshStandardMaterial({
         color: activeColor,
         roughness: 0.2,
@@ -2610,7 +3067,141 @@ export default function Network3DViewer({
       { name: 'Nhánh Cấp 3 D150 -> Đại Đô Thị Royal City', tier: 'Cấp 3 (D150)', status: 'Ổn định' }
     );
 
-        // =========================================================================
+        
+    // --- TUYẾN ỐNG TRUYỀN DẪN VÀ MẠCH VÒNG NGOẠI VI (OUTER RING PIPELINE EXTENSIONS) ---
+    // Trục D800 Nước Mặt Sông Đà Cửa Ngõ Tây (Kéo dài từ -1240 về -700)
+    create3DPipe(
+      [new THREE.Vector3(-1240, 1.4, 40), new THREE.Vector3(-1100, 1.4, 40), new THREE.Vector3(-700, 1.4, 40)],
+      1.6,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D800 Nước Mặt Sông Đà Cửa Ngõ Tây',
+      'PIPE-SD-WEST-EXT',
+      true,
+      1,
+      { name: 'Trục D800 Nước Mặt Sông Đà Cửa Ngõ Tây', tier: 'Cấp 1 (D800)', flow: '1,450 m³/h', pressure: '4.85 bar', status: 'Áp lực cấp nguồn liên vùng' }
+    );
+
+    // Trục D800 Vành Đai 3 Phía Bắc (Kéo dài đến biên -1240)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.4, -1100), new THREE.Vector3(-440, 1.4, -1240)],
+      1.6,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D800 Vành Đai 3 Bắc -> Cầu Giấy',
+      'PIPE-VD3-NORTH-EXT',
+      true,
+      1,
+      { name: 'Trục D800 Vành Đai 3 Bắc -> Cầu Giấy', tier: 'Cấp 1 (D800)', flow: '980 m³/h', pressure: '3.65 bar', status: 'Truyền dẫn liên quận' }
+    );
+
+    // Trục D800 Vành Đai 3 Phía Nam (Kéo dài đến biên +1240)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.4, 1100), new THREE.Vector3(-440, 1.4, 1240)],
+      1.6,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D800 Vành Đai 3 Nam -> Thanh Xuân / Hoàng Mai',
+      'PIPE-VD3-SOUTH-EXT',
+      true,
+      1,
+      { name: 'Trục D800 Vành Đai 3 Nam -> Thanh Xuân / Hoàng Mai', tier: 'Cấp 1 (D800)', flow: '1,120 m³/h', pressure: '3.70 bar', status: 'Truyền dẫn liên quận' }
+    );
+
+    // Trục D600 Trần Duy Hưng Phía Đông (Kéo dài ra +1240)
+    create3DPipe(
+      [new THREE.Vector3(650, 1.4, -180), new THREE.Vector3(950, 1.4, -180), new THREE.Vector3(1240, 1.4, -180)],
+      1.4,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D600 Trần Duy Hưng Đông -> Nguyễn Chí Thanh / Đống Đa',
+      'PIPE-TDH-EAST-EXT',
+      true,
+      1,
+      { name: 'Trục D600 Trần Duy Hưng Đông -> Nguyễn Chí Thanh', tier: 'Cấp 1 (D600)', flow: '680 m³/h', pressure: '3.42 bar', status: 'Ổn định' }
+    );
+
+    // Trục D600 Lê Văn Lương Phía Đông (Kéo dài ra +1240)
+    create3DPipe(
+      [new THREE.Vector3(650, 1.4, 180), new THREE.Vector3(950, 1.4, 180), new THREE.Vector3(1240, 1.4, 180)],
+      1.4,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D600 Lê Văn Lương Đông -> Láng Hạ',
+      'PIPE-LVL-EAST-EXT',
+      true,
+      1,
+      { name: 'Trục D600 Lê Văn Lương Đông -> Láng Hạ', tier: 'Cấp 1 (D600)', flow: '720 m³/h', pressure: '3.38 bar', status: 'Ổn định' }
+    );
+
+    // Trục D600 Nguyễn Trãi (Trục Chính Đông Nam từ -440 đến 1240)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.4, 720), new THREE.Vector3(0, 1.4, 720), new THREE.Vector3(450, 1.4, 720), new THREE.Vector3(850, 1.4, 720), new THREE.Vector3(1240, 1.4, 720)],
+      1.4,
+      isDark ? 0x0284c7 : 0x0369a1,
+      'Trục D600 Nguyễn Trãi (Hà Đông -> Ngã Tư Sở)',
+      'PIPE-NT-MAIN',
+      true,
+      1,
+      { name: 'Trục D600 Nguyễn Trãi', tier: 'Cấp 1 (D600)', flow: '890 m³/h', pressure: '3.50 bar', status: 'Trục truyền dẫn chính' }
+    );
+
+    // Trục D500 Tố Hữu (Lê Văn Lương kéo dài từ -440 đến -1240)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.4, 200), new THREE.Vector3(-750, 1.4, 200), new THREE.Vector3(-1050, 1.4, 200), new THREE.Vector3(-1240, 1.4, 200)],
+      1.25,
+      isDark ? 0x0ea5e9 : 0x0284c7,
+      'Trục D500 Tố Hữu -> Nam Cường / Hà Đông',
+      'PIPE-TH-MAIN',
+      true,
+      1,
+      { name: 'Trục D500 Tố Hữu', tier: 'Cấp 1 (D500)', flow: '560 m³/h', pressure: '3.45 bar', status: 'Ổn định' }
+    );
+
+    // Mạch Vòng D350 Tây Bắc (Mễ Trì - Mỹ Đình - Sa Đôi)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.2, -180), new THREE.Vector3(-800, 1.2, -180), new THREE.Vector3(-850, 1.2, 0), new THREE.Vector3(-800, 1.2, 90), new THREE.Vector3(-440, 1.2, 40)],
+      1.1,
+      0x38bdf8,
+      'Mạch Vòng D350 Cụm Đô Thị Mễ Trì - JW Marriott',
+      'PIPE-RING-WEST',
+      true,
+      2,
+      { name: 'Mạch Vòng D350 Mễ Trì - Marriott', tier: 'Cấp 2 (D350)', flow: '320 m³/h', pressure: '3.42 bar', status: 'Vòng khép kín' }
+    );
+
+    // Mạch Vòng D350 Đông Bắc (Nam Trung Yên - Home City - Cầu Giấy)
+    create3DPipe(
+      [new THREE.Vector3(0, 1.2, -180), new THREE.Vector3(0, 1.2, -540), new THREE.Vector3(340, 1.2, -540), new THREE.Vector3(340, 1.2, -180)],
+      1.1,
+      0x38bdf8,
+      'Mạch Vòng D350 KĐT Nam Trung Yên - Trung Kính',
+      'PIPE-RING-NORTH',
+      true,
+      2,
+      { name: 'Mạch Vòng D350 Nam Trung Yên', tier: 'Cấp 2 (D350)', flow: '290 m³/h', pressure: '3.32 bar', status: 'Vòng khép kín' }
+    );
+
+    // Mạch Vòng D350 Đông Nam (Vũ Trọng Phụng - Nguyễn Tuân - Nguyễn Trãi)
+    create3DPipe(
+      [new THREE.Vector3(240, 1.2, 180), new THREE.Vector3(240, 1.2, 720), new THREE.Vector3(650, 1.2, 720), new THREE.Vector3(650, 1.2, 180)],
+      1.1,
+      0x38bdf8,
+      'Mạch Vòng D350 Cụm Đô Thị Thanh Xuân - Thượng Đình',
+      'PIPE-RING-SOUTH-EAST',
+      true,
+      2,
+      { name: 'Mạch Vòng D350 Thanh Xuân - Thượng Đình', tier: 'Cấp 2 (D350)', flow: '380 m³/h', pressure: '3.25 bar', status: 'Vòng khép kín' }
+    );
+
+    // Mạch Vòng D350 Tây Nam (Phùng Khoang - Triều Khúc - Lương Thế Vinh)
+    create3DPipe(
+      [new THREE.Vector3(-440, 1.2, 200), new THREE.Vector3(-440, 1.2, 720), new THREE.Vector3(0, 1.2, 720), new THREE.Vector3(0, 1.2, 350)],
+      1.1,
+      0x38bdf8,
+      'Mạch Vòng D350 KĐT Phùng Khoang - Triều Khúc',
+      'PIPE-RING-SOUTH-WEST',
+      true,
+      2,
+      { name: 'Mạch Vòng D350 Phùng Khoang', tier: 'Cấp 2 (D350)', flow: '280 m³/h', pressure: '3.30 bar', status: 'Vòng khép kín' }
+    );
+
+    // =========================================================================
     // 12. CHỐT KHÓA NƯỚC THÔNG MINH (CLICK ĐỂ ĐÓNG/MỞ -> MÔ PHỎNG CẮT NƯỚC)
     // =========================================================================
     const valveGroup = new THREE.Group();
@@ -2800,7 +3391,46 @@ export default function Network3DViewer({
       '150 căn biệt thự & 2,200 học sinh'
     );
 
-    // =========================================================================
+
+    // --- 4 TRẠM BUỒNG VAN GIẢM ÁP & ĐO ĐẾM ĐẦU VÀO DMA NGOẠI VI (PRV & BULK METERS) ---
+    createSmartValve(
+      [-1120, 0, 40],
+      'Trạm Van PRV & Bulk Meter Nguồn Nước Sông Đà',
+      'VALVE-PRV-GATE-WEST',
+      false,
+      'Cửa Ngõ Nguồn Tây (Đại Lộ Thăng Long)',
+      'Tiếp nhận nước sạch từ NMN Sông Đà cấp cho toàn quận Cầu Giấy & Nam Từ Liêm',
+      '120.000 dân cư & tổ hợp thương mại'
+    );
+    createSmartValve(
+      [-440, 0, -1120],
+      'Trạm Van PRV Vành Đai 3 Bắc Cầu Giấy',
+      'VALVE-PRV-GATE-NORTH',
+      false,
+      'Cửa Ngõ Phía Bắc (Phạm Hùng - Cầu Giấy)',
+      'Điều áp phân vùng DMA Nam Trung Yên, Dịch Vọng Hậu, KĐT Cầu Giấy',
+      '65.000 dân cư'
+    );
+    createSmartValve(
+      [920, 0, 720],
+      'Trạm Van PRV Cửa Ngõ Nguyễn Trãi',
+      'VALVE-PRV-GATE-SOUTH',
+      false,
+      'Cửa Ngõ Phía Đông Nam (Nguyễn Trãi - Thanh Xuân)',
+      'Điều áp phân vùng cấp nước Royal City, Thượng Đình, Nhân Chính',
+      '85.000 dân cư'
+    );
+    createSmartValve(
+      [1120, 0, 180],
+      'Trạm Van PRV Cửa Ngõ Láng Hạ',
+      'VALVE-PRV-GATE-EAST',
+      false,
+      'Cửa Ngõ Phía Đông (Lê Văn Lương - Láng Hạ)',
+      'Kết nối mạng lưới truyền dẫn quận Đống Đa - Ba Đình',
+      '55.000 dân cư'
+    );
+
+        // =========================================================================
     // 13. TRỤ CỨU HỎA PCCC (80+ TRỤ KHẮP CÁC TUYẾN ĐƯỜNG - QCVN 06:2022)
     // =========================================================================
     if (assetsLayer.hydrants) {
@@ -2878,12 +3508,209 @@ export default function Network3DViewer({
       ];
 
       hydrantSpacing.forEach(h => createHydrant(h.pos, `Trụ Cứu Hỏa ${h.id}`, h.id, h.road));
+
+      // Bổ sung 36 Trụ Cứu Hỏa Vành Đai Mới (QCVN 06:2022/BXD cự ly 150m)
+      const outerHydrants = [
+        // Nguyễn Trãi (10 trụ)
+        ...[-380, -260, -140, -20, 100, 220, 340, 460, 580, 700].map((x, idx) => ({ pos: [x, 0, 734], id: `HYD-NT-${idx + 1}`, road: 'Đường Nguyễn Trãi' })),
+        // Tố Hữu (8 trụ)
+        ...[-1050, -950, -850, -750, -650, -550, -480, -420].map((x, idx) => ({ pos: [x, 0, 214], id: `HYD-TH-${idx + 1}`, road: 'Đường Tố Hữu' })),
+        // Vành Đai 3 Bắc & Nam Mở Rộng (10 trụ)
+        ...[-1050, -950, -850, -750, -650, 650, 750, 850, 950, 1050].map((z, idx) => ({ pos: [-422, 0, z], id: `HYD-VD3-EXT-${idx + 1}`, road: 'Đường Vành Đai 3 Ngoại Vi' })),
+        // Sa Đôi - Mễ Trì (8 trụ)
+        ...[-300, -200, -100, 0, 100, 200, 300, 400].map((z, idx) => ({ pos: [-836, 0, z], id: `HYD-SD-${idx + 1}`, road: 'Đường Sa Đôi - Mễ Trì' }))
+      ];
+      outerHydrants.forEach(h => createHydrant(h.pos, `Trụ Cứu Hỏa ${h.id}`, h.id, h.road));
+
     }
 
     // =========================================================================
     // 14. TRẠM ĐÀI NƯỚC & BƠM TĂNG ÁP ĐẦU MỐI
     // =========================================================================
+    
+    
+    // =========================================================================
+    // 13B. IOT SCADA SENSOR TELEMETRY NODES (PT, FM, WQ - TCVN 33:2006)
+    // =========================================================================
+    if (assetsLayer.sensors) {
+      const sensorGroup = new THREE.Group();
+      scene.add(sensorGroup);
+
+      const createSensorNode = ({ pos, name, id, type, metric, value, unit, status, dma }) => {
+        const sGroup = new THREE.Group();
+        sGroup.position.set(pos[0], 0, pos[2]);
+
+        // Cột đỡ cảm biến công nghiệp
+        const postGeo = new THREE.CylinderGeometry(0.35, 0.45, 3.2, 12);
+        const postMat = new THREE.MeshStandardMaterial({
+          color: isDark ? 0x1e293b : 0x64748b,
+          metalness: 0.8,
+          roughness: 0.3
+        });
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.y = 1.6;
+        sGroup.add(post);
+
+        // Đầu cảm biến phát quang SCADA (PT: Xanh Cyan, FM: Xanh Lá, WQ: Tím Clo)
+        const headColor = type === 'PT' ? 0x38bdf8 : (type === 'FM' ? 0x10b981 : 0xa855f7);
+        const headGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.7, 16);
+        const headMat = new THREE.MeshStandardMaterial({
+          color: headColor,
+          emissive: headColor,
+          emissiveIntensity: isDark ? 0.95 : 0.6,
+          metalness: 0.6,
+          roughness: 0.2
+        });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.y = 3.5;
+        sGroup.add(head);
+
+        // Vòng tròn xung nhịp truyền sóng viễn thông IoT 4G/NB-IoT
+        const haloGeo = new THREE.RingGeometry(1.2, 1.8, 16);
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: headColor,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.75
+        });
+        const halo = new THREE.Mesh(haloGeo, haloMat);
+        halo.rotation.x = -Math.PI / 2;
+        halo.position.y = 3.9;
+        sGroup.add(halo);
+
+        const assetData = {
+          name,
+          id,
+          type: type === 'PT' 
+            ? 'Cảm biến Áp lực Mạng lưới (Pressure Transmitter)' 
+            : (type === 'FM' ? 'Đồng hồ Lưu lượng Điện từ DMA (Flow Meter)' : 'Cảm biến Quan trắc Chất lượng nước (Clo dư & pH)'),
+          status: 'Trực tuyến 24/7 (SCADA RTU / 4G Telemetry)',
+          reading: `${value} ${unit}`,
+          metric: metric,
+          elevation: '+16.8m ASL',
+          dma: dma,
+          frequency: 'Chu kỳ truyền tin: 10 giây/lần'
+        };
+
+        sGroup.userData = { name, id, type: 'Sensor', data: assetData };
+        head.userData = sGroup.userData;
+        clickableObjectsRef.current.push(head);
+        sensorGroup.add(sGroup);
+      };
+
+      // 24 Trạm Cảm biến IoT SCADA bố trí tại các vị trí đầu mối và điểm cuối mạng
+      const scadaSensors = [
+        // Cảm biến Áp lực (PT - Pressure Transmitters)
+        { pos: [0, 0, 0], name: 'Điểm Đo Áp Lực Trung Tâm (Ngã Tư Hoàng Đạo Thúy)', id: 'PT-HDT-01', type: 'PT', metric: 'Áp lực thủy lực', value: '3.24', unit: 'bar', dma: 'DMA THNC-01' },
+        { pos: [-440, 0, 40], name: 'Cảm Biến Áp Lực ĐL Thăng Long - Vành Đai 3', id: 'PT-VD3-02', type: 'PT', metric: 'Áp lực đầu vào', value: '4.85', unit: 'bar', dma: 'DMA Nguồn Tây' },
+        { pos: [0, 0, -180], name: 'Điểm Đo Áp Lực Trần Duy Hưng', id: 'PT-TDH-03', type: 'PT', metric: 'Áp lực tuyến chính', value: '3.42', unit: 'bar', dma: 'DMA THNC-02' },
+        { pos: [0, 0, 180], name: 'Điểm Đo Áp Lực Lê Văn Lương', id: 'PT-LVL-04', type: 'PT', metric: 'Áp lực tuyến chính', value: '3.38', unit: 'bar', dma: 'DMA THNC-03' },
+        { pos: [-440, 0, -950], name: 'Cảm Biến Áp Lực Cuối Tuyến Bắc (Vành Đai 3 Bắc)', id: 'PT-NORTH-05', type: 'PT', metric: 'Áp lực cuối mạng', value: '2.85', unit: 'bar', dma: 'DMA Nam Trung Yên' },
+        { pos: [850, 0, 720], name: 'Cảm Biến Áp Lực Cuối Tuyến Đông Nam (Nguyễn Trãi)', id: 'PT-SOUTH-06', type: 'PT', metric: 'Áp lực cuối mạng', value: '2.92', unit: 'bar', dma: 'DMA Thượng Đình' },
+        { pos: [-980, 0, 80], name: 'Cảm Biến Áp Lực Vùng Tây Mễ Trì', id: 'PT-WEST-07', type: 'PT', metric: 'Áp lực cấp nước', value: '3.40', unit: 'bar', dma: 'DMA Mễ Trì' },
+        { pos: [240, 0, 860], name: 'Cảm Biến Áp Lực Điểm Cao Triều Khúc', id: 'PT-SOUTH-08', type: 'PT', metric: 'Áp lực nút bất lợi', value: '2.75', unit: 'bar', dma: 'DMA Thanh Xuân Nam' },
+        { pos: [340, 0, -650], name: 'Cảm Biến Áp Lực Cầu Giấy - Yên Hòa', id: 'PT-CG-09', type: 'PT', metric: 'Áp lực phân phối', value: '3.15', unit: 'bar', dma: 'DMA Cầu Giấy' },
+        { pos: [950, 0, 180], name: 'Cảm Biến Áp Lực Biên Phía Đông (Láng Hạ)', id: 'PT-EAST-10', type: 'PT', metric: 'Áp lực truyền dẫn', value: '3.20', unit: 'bar', dma: 'DMA Láng Hạ' },
+
+        // Đồng hồ Đo Lưu lượng Điện từ (FM - Flow Meters)
+        { pos: [-1100, 0, 40], name: 'Đồng Hồ Tổng Cửa Ngõ Nước Mặt Sông Đà', id: 'FM-INLET-SD', type: 'FM', metric: 'Lưu lượng tổng', value: '1,450.0', unit: 'm³/h', dma: 'DMA Cửa Ngõ Nguồn' },
+        { pos: [-440, 0, -1050], name: 'Đồng Hồ Lưu Lượng Đầu Vào Bắc Vành Đai 3', id: 'FM-INLET-VD3-N', type: 'FM', metric: 'Lưu lượng phân vùng', value: '980.0', unit: 'm³/h', dma: 'DMA Nam Trung Yên' },
+        { pos: [880, 0, 720], name: 'Đồng Hồ Lưu Lượng Đầu Vào Đông Nam Nguyễn Trãi', id: 'FM-INLET-NT', type: 'FM', metric: 'Lưu lượng phân vùng', value: '890.0', unit: 'm³/h', dma: 'DMA Thượng Đình' },
+        { pos: [1050, 0, 180], name: 'Đồng Hồ Lưu Lượng Đầu Vào Phía Đông Lê Văn Lương', id: 'FM-INLET-LVL', type: 'FM', metric: 'Lưu lượng phân vùng', value: '720.0', unit: 'm³/h', dma: 'DMA Láng Hạ' },
+        { pos: [140, 0, 0], name: 'Đồng Hồ Lưu Lượng Tiểu Vùng THNC-01', id: 'FM-SUB-01', type: 'FM', metric: 'Lưu lượng tiêu thụ', value: '145.8', unit: 'm³/h', dma: 'DMA THNC-01' },
+        { pos: [-160, 0, 0], name: 'Đồng Hồ Lưu Lượng Tiểu Vùng THNC-02', id: 'FM-SUB-02', type: 'FM', metric: 'Lưu lượng tiêu thụ', value: '128.5', unit: 'm³/h', dma: 'DMA THNC-02' },
+        { pos: [0, 0, 350], name: 'Đồng Hồ Lưu Lượng Tiểu Vùng THNC-03', id: 'FM-SUB-03', type: 'FM', metric: 'Lưu lượng tiêu thụ', value: '162.0', unit: 'm³/h', dma: 'DMA THNC-03' },
+
+        // Cảm biến Quan trắc Chất lượng nước (WQ - Water Quality: Clo dư & pH)
+        { pos: [-800, 0, 90], name: 'Trạm Quan Trắc Chất Lượng Nước Mễ Trì', id: 'WQ-WEST-01', type: 'WQ', metric: 'Clo dư / pH', value: '0.45 mg/L | pH 7.4', unit: '', dma: 'DMA Mễ Trì' },
+        { pos: [0, 0, 0], name: 'Trạm Quan Trắc Chất Lượng Nước Trung Tâm THNC', id: 'WQ-CORE-02', type: 'WQ', metric: 'Clo dư / pH', value: '0.55 mg/L | pH 7.5', unit: '', dma: 'DMA THNC-01' },
+        { pos: [840, 0, 520], name: 'Trạm Quan Trắc Chất Lượng Nước Royal City', id: 'WQ-EAST-03', type: 'WQ', metric: 'Clo dư / pH', value: '0.42 mg/L | pH 7.3', unit: '', dma: 'DMA Thượng Đình' },
+        { pos: [-180, 0, -480], name: 'Trạm Quan Trắc Chất Lượng Nước Nam Trung Yên', id: 'WQ-NORTH-04', type: 'WQ', metric: 'Clo dư / pH', value: '0.38 mg/L | pH 7.4', unit: '', dma: 'DMA Nam Trung Yên' },
+        { pos: [120, 0, 840], name: 'Trạm Quan Trắc Chất Lượng Nước Triều Khúc', id: 'WQ-SOUTH-05', type: 'WQ', metric: 'Clo dư / pH', value: '0.35 mg/L | pH 7.2', unit: '', dma: 'DMA Thanh Xuân Nam' },
+        { pos: [-950, 0, 160], name: 'Trạm Kiểm Soát Clo Dư Bể Chứa Tây Hà Nội', id: 'WQ-TANK-WEST', type: 'WQ', metric: 'Clo dư khử trùng', value: '0.65 mg/L | pH 7.6', unit: '', dma: 'DMA Mễ Trì' },
+        { pos: [280, 0, 960], name: 'Trạm Kiểm Soát Clo Dư Bể Chứa Nam Hà Nội', id: 'WQ-TANK-SOUTH', type: 'WQ', metric: 'Clo dư khử trùng', value: '0.62 mg/L | pH 7.5', unit: '', dma: 'DMA Thanh Xuân Nam' }
+      ];
+
+      scadaSensors.forEach(s => createSensorNode(s));
+    }
+
     if (assetsLayer.tanks) {
+      // TRẠM CẤP NƯỚC TĂNG ÁP & BỂ CHỨA ĐIỀU HÒA NGOẠI VI TÂY HÀ NỘI (-960, 0, 160)
+      const westTankGroup = new THREE.Group();
+      westTankGroup.position.set(-960, 0, 160);
+
+      const wTankBaseGeo = new THREE.CylinderGeometry(28, 30, 14, 28);
+      const wTankMat = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x0284c7 : 0x0369a1,
+        metalness: 0.65,
+        roughness: 0.25
+      });
+      const wTankMesh = new THREE.Mesh(wTankBaseGeo, wTankMat);
+      wTankMesh.position.y = 7;
+      wTankMesh.castShadow = true;
+      westTankGroup.add(wTankMesh);
+
+      const wDomeGeo = new THREE.SphereGeometry(28.2, 28, 16, 0, Math.PI * 2, 0, Math.PI * 0.45);
+      const wDomeMat = new THREE.MeshStandardMaterial({ color: isDark ? 0x38bdf8 : 0x0284c7, metalness: 0.8 });
+      const wDome = new THREE.Mesh(wDomeGeo, wDomeMat);
+      wDome.position.y = 10;
+      westTankGroup.add(wDome);
+
+      westTankGroup.userData = {
+        name: 'Trạm Bơm Tăng Áp & Bể Chứa Điều Hòa Ngoại Vi Mễ Trì',
+        id: 'TANK-BOOSTER-WEST',
+        type: 'Trạm Bơm & Bể Chứa Ngoại Vi',
+        data: {
+          name: 'Trạm Bơm Tăng Áp & Bể Chứa Điều Hòa Mễ Trì (Tây Hà Nội)',
+          id: 'TANK-BOOSTER-WEST',
+          type: 'Bể ngầm điều hòa 12.000 m³ + Trạm bơm 4 tổ máy',
+          status: 'Vận hành tự động SCADA - Dự phòng cấp nước khẩn cấp',
+          capacity: '12.000 m³ nước sạch',
+          pressure: 'Áp lực đẩy: 4.65 bar',
+          flow: 'Lưu lượng bơm điều hòa: 1.250 m³/h',
+          elevation: '+17.2m ASL',
+          dma: 'DMA Mễ Trì - Tây Hà Nội'
+        }
+      };
+      wTankMesh.userData = westTankGroup.userData;
+      clickableObjectsRef.current.push(wTankMesh);
+      scene.add(westTankGroup);
+
+      // TRẠM CẤP NƯỚC BỂ CHỨA TRIỀU KHÚC - THANH XUÂN NAM (280, 0, 960)
+      const southTankGroup = new THREE.Group();
+      southTankGroup.position.set(280, 0, 960);
+
+      const sTankBaseGeo = new THREE.CylinderGeometry(24, 26, 12, 24);
+      const sTankMesh = new THREE.Mesh(sTankBaseGeo, wTankMat);
+      sTankMesh.position.y = 6;
+      sTankMesh.castShadow = true;
+      southTankGroup.add(sTankMesh);
+
+      const sDomeGeo = new THREE.SphereGeometry(24.2, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.45);
+      const sDome = new THREE.Mesh(sDomeGeo, wDomeMat);
+      sDome.position.y = 8;
+      southTankGroup.add(sDome);
+
+      southTankGroup.userData = {
+        name: 'Trạm Bể Chứa Điều Hòa & Bơm Cấp Nước Triều Khúc',
+        id: 'TANK-SOUTH-TRIEUKHUC',
+        type: 'Trạm Bơm & Bể Chứa Ngoại Vi',
+        data: {
+          name: 'Trạm Bể Chứa Điều Hòa Triều Khúc - Thanh Xuân Nam',
+          id: 'TANK-SOUTH-TRIEUKHUC',
+          type: 'Bể ngầm điều hòa 8.500 m³',
+          status: 'Cân bằng áp lực giờ cao điểm phía Nam',
+          capacity: '8.500 m³ nước sạch',
+          pressure: 'Áp lực: 3.55 bar',
+          flow: '820 m³/h',
+          elevation: '+16.1m ASL',
+          dma: 'DMA Thanh Xuân Nam'
+        }
+      };
+      sTankMesh.userData = southTankGroup.userData;
+      clickableObjectsRef.current.push(sTankMesh);
+      scene.add(southTankGroup);
+
       const tankGroup = new THREE.Group();
       tankGroup.position.set(-350, 0, 220);
 
@@ -3072,7 +3899,7 @@ export default function Network3DViewer({
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: compact ? '440px' : '560px' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: compact ? '440px' : 'calc(100vh - 65px)' }}>
       <div ref={mountRef} style={{ width: '100%', height: '100%', outline: 'none' }} />
 
       {/* Active Outage Warning Banner at Top */}

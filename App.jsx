@@ -401,7 +401,8 @@ export default function App() {
         </header>
 
         {/* Content depending on Active Tab */}
-        <main className="content-container">
+        <main className={`content-container ${activeTab === 'gis' ? 'gis-tab-active' : ''}`}>
+          {/* Fixed height full-bleed for GIS tab */}
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <>
